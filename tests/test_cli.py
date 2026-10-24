@@ -16,6 +16,31 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SYNTHETIC_ENTRY = "assets/patch state.bin"
 
 
+def test_game_can_preserve_unrelated_members_including_branding(
+    tmp_path, make_synthetic_game, make_apk, text_manifest, monkeypatch
+):
+    repo = tmp_path / "repository"
+    game = make_synthetic_game(repo)
+    path = game / "patch_impl.py"
+    path.write_text(path.read_text() + "\nPRESERVE_UNRELATED_ENTRIES = True\n")
+    original = make_apk(
+        tmp_path / "original.apk", manifest=text_manifest("example.synthetic.game"),
+        entries=[(SYNTHETIC_ENTRY, b"ORIGINAL", zipfile.ZIP_STORED),
+                 ("assets/branding.bin", b"preserve me", zipfile.ZIP_STORED)],
+    )
+    output = tmp_path / "output.apk"
+    monkeypatch.setattr(cli, "_repo_root", lambda: repo)
+    def forbidden(*args):
+        pytest.fail("Optional branding/protection transforms must not run")
+    monkeypatch.setattr(cli, "repack_with_optional_branding", forbidden)
+    monkeypatch.setattr(cli, "align_apk", _simple_align)
+    monkeypatch.setattr(cli, "verify_alignment", lambda apk: None)
+    assert cli.run([str(original), "--unsigned", "--output", str(output)]) == 0
+    with zipfile.ZipFile(output) as archive:
+        assert archive.read(SYNTHETIC_ENTRY) == b"PATCHED"
+        assert archive.read("assets/branding.bin") == b"preserve me"
+
+
 def _simple_repack(
     _repo: Path,
     input_apk: Path,

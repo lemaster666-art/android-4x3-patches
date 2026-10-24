@@ -1,0 +1,15 @@
+{
+  "id": "marvel-cosmic-invasion",
+  "display_name": "Marvel Cosmic Invasion",
+  "package_names": ["com.jayeldragon.marvelcosmic.preview"],
+  "engine": "FNA/FNA3D + SDL3 / Xamarin Mono AOT",
+  "status": "experimental",
+  "output_name": "Marvel-Cosmic-Invasion-stretched-4x3-experimental.apk",
+  "tested_versions": ["1.0-jayeldragon-display (2), ARM64; static validation only"],
+  "required_entries": ["AndroidManifest.xml", "classes2.dex"],
+  "compatibility": {
+    "strategy": "exact display-shim DEX and manifest identity guards; compositor transform only",
+    "visual_verification": "pending Retroid Pocket Classic hardware test",
+    "build": "Use this game's build.py to preserve every unrelated APK member and protection library."
+  }
+}

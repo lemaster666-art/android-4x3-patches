@@ -244,7 +244,11 @@ def run(argv: list[str] | None = None) -> int:
         unsigned = work / "rebuilt-unsigned.apk"
         aligned = work / "rebuilt-aligned.apk"
         signed = work / "rebuilt-signed.apk"
-        repack_with_optional_branding(repo, input_apk, unsigned, replacements)
+        if getattr(module, "PRESERVE_UNRELATED_ENTRIES", False):
+            from .apk import _stdlib_core_repack
+            _stdlib_core_repack(input_apk, unsigned, replacements)
+        else:
+            repack_with_optional_branding(repo, input_apk, unsigned, replacements)
         verify_zip(unsigned)
         align_apk(unsigned, aligned)
         if args.unsigned:

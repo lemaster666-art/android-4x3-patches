@@ -33,6 +33,7 @@ def test_publishable_registry_loads_every_declared_game_module() -> None:
         "huntdown",
         "hyper-light-drifter",
         "mega-man-x-regenesis",
+        "marvel-cosmic-invasion",
         "rogue-legacy",
         "sea-of-stars",
         "shin-chan",
