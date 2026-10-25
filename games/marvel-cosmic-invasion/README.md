@@ -8,8 +8,9 @@ Classic / Android 14 validation on **2026-10-25**, covering menus and approximat
 **Mac users:** follow [Build on your Mac](MAC_BUILD.md) for one Terminal command,
 automatic private tool installation, signing and verification. You supply the
 original APK locally; no game files are uploaded or included in this repository.
-The owner confirmed this Terminal workflow worked perfectly; it is the preferred
-method for future Marvel builds using their own local APK.
+The owner confirmed this Terminal workflow worked perfectly. It follows their
+project-wide preference for all APK builds: local Terminal builds using their
+own original APK. This particular launcher applies that workflow to Marvel.
 
 Target: Retroid Pocket Classic, Android 14, full-screen 1240×1080 parent. The
 existing 1240×698 SDL SurfaceView layout remains 16:9 internally. A centred
