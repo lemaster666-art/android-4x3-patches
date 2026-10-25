@@ -2,16 +2,6 @@
 
 Contributions that add compatibility for another legitimately obtained APK revision are welcome. Do not submit APKs, extracted complete game files, private signing material, copyrighted artwork, or unchanged proprietary code.
 
-## Local APK builds
-
-For all games, the preferred user workflow is a local macOS Terminal build from
-the user's own original APK. New patch/build tooling should include reproducible,
-beginner-friendly local instructions, ideally a single command with dependency
-setup, signing and verification. Preserve the input, write a separate APK, and
-keep reusable signing material private. Use cloud work for code, documentation
-and proprietary-free tests by default; cloud APK builds/transfers require an
-explicit user request. Commit only patch/build code, tests and instructions.
-
 ## Compatibility contributions
 
 1. Run `./patch.sh --check --json Game.apk` and record the package, version, engine, and failed target—never upload the APK.

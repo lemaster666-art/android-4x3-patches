@@ -8,11 +8,9 @@ The existing display patch is not changed by the launcher.
 worked perfectly with their local original APK. The resulting build installed
 on a Retroid Pocket Classic running Android 14, with correct centred stretched
 4:3 presentation in menus and approximately 30 minutes of gameplay. This is the
-preferred workflow for future APK builds in general: build locally from your
-own APK, retain your local signing key, and transfer only the finished output
-to the Retroid. This particular command builds Marvel; other games use their
-appropriate local builders. No APK upload or cloud file-transfer service is
-needed.
+preferred method for future Marvel builds: build locally from your own APK,
+retain your local signing key, and transfer only the finished output to the
+Retroid. No APK upload or cloud file-transfer service is needed.
 
 Supports Apple Silicon and Intel Macs. Allow roughly 5 GB of free disk space and
 an internet connection for the first run. Homebrew, Android Studio, Xcode and

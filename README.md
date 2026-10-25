@@ -71,22 +71,6 @@ The patcher looks for Android Build Tools on `PATH`, under `ANDROID_HOME`/`ANDRO
 
 ## Setup
 
-### Preferred workflow for all APK builds
-
-Build locally in **macOS Terminal using your own original APK**. This preference
-applies across games. Future patch work should provide reproducible local build
-instructions, preferably one command that handles dependencies, signing and
-verification. Keep the original untouched, create a separate output, and retain
-your private local signing key for later builds.
-
-Use the repository for patching code, synthetic tests and documentation; keep
-APKs, extracted proprietary game files and signing material out of GitHub.
-Cloud APK builds or transfers are used only when explicitly requested.
-
-The [validated Marvel Mac workflow](games/marvel-cosmic-invasion/MAC_BUILD.md)
-is an example. Its launcher is specific to Marvel; other games use their own
-appropriate local patcher and dependencies.
-
 ### macOS or Linux
 
 ```sh

@@ -50,12 +50,10 @@ physical-device evidence, distinct from the cloud's synthetic and archive checks
 
 The owner also confirmed that the public macOS Terminal command in
 [the Mac build guide](games/marvel-cosmic-invasion/MAC_BUILD.md) worked perfectly
-with their own local original APK. The owner clarified that local Terminal
-builds from their own original APK are the preferred workflow for **all APK
-builds**, across games. This Marvel command is a validated example: run the
-appropriate game's builder locally, keep the source APK on the Mac, and retain
-the local signing key. No game-file upload or cloud transfer is needed. The Mac
-model and macOS version were not recorded.
+with their own local original APK. This is the preferred workflow for future
+Marvel builds: run the Terminal launcher locally, keep the source APK on the
+Mac, and retain the local signing key. No game-file upload or cloud transfer is
+needed. The Mac model and macOS version were not recorded.
 
 The validated patch targets a **1240×930** displayed image with **75-pixel top
 and bottom borders**, retaining the original **1240×698** internal surface and
