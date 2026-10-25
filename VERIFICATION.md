@@ -12,8 +12,9 @@ is never presented as visual proof:
   contains every expected patched target. It does not prove that a currently
   unavailable clean source can be reproduced byte-for-byte.
 - **Physical-device verification** checks launch and presentation on the
-  1280x960 Android test device. Emulator or host-side checks are not counted as
-  physical visual verification.
+  device and display recorded for each entry, including the 1280x960 Android
+  development device and user-reported Retroid Pocket Classic tests. Emulator
+  or host-side checks are not counted as physical visual verification.
 
 No APK, extracted game asset, signing key, device identifier, or local path is
 stored in this record.
@@ -28,6 +29,7 @@ stored in this record.
 | Advent Neon, AM2R | Experimental | Advent Neon was rebuilt clean-to-patched with centered title/controls/warning foregrounds and exact-known GameMaker splash neutralization; signed post-state recognition, adopted-storage installation, and cold launch passed. Latest placement awaits visual confirmation. AM2R retains its prior result. |
 | Rogue Legacy, STALKER: Call of Pripyat Mobile | Experimental | Rogue Legacy's clean reference recognizes the jointly centered options, full 1320x990 map/teleporter target, restored 720-line world-grid normalization, post-scale right-aligned proportional full-height loading gate, top-overscanned pause dimmer, bottom-docked projectile edge marker, top-anchored extended death spotlights, and screen-local touch-overlay suppression. The unrelated rune shop remains at its original Y=360. The rebuilt APK reached signed post-state and was installed on adopted storage. STALKER upgrades settings text to 19/21/24/26 while accepting the earlier pass as input. Rogue Legacy's latest visual confirmation remains pending. |
 | Children of Morta, Death Road to Canada, Dusklight, Grimvalor, Huntdown | Experimental | Proprietary-free target tests and development-output checks pass. Death Road analog-axis, D-pad, and idle captures kept the same selection and showed the same animated highlight, so no input patch was added. Complete visual inspection remains pending. |
+| Marvel Cosmic Invasion | Experimental | User-reported validation on 2026-10-25: the macOS Terminal workflow successfully built the APK from the user's local original; installation on Retroid Pocket Classic / Android 14 succeeded, and centred stretched 4:3 presentation worked correctly in menus and approximately 30 minutes of gameplay. See the detailed scope below. |
 
 | Mega Man X Regenesis | Experimental | Developer APK 1.00.82 rebuilt with the public command; signed post-state and sparse-index integrity verified. Streamed installation and in-place updates succeeded on adopted storage. Opening sequence, enlarged save-selection screen, and opening in-world dialogue inspected at 1280×960; no script errors after correcting the sparse directory. Transient Vulkan surface-loss messages occurred during transitions, followed by successful rendering; extended stability testing is pending. Options follow-up: inspected all 14 rows at 1280×960 with separated labels, checkboxes, volume bars, language and save-slot values; long English labels remain visible. The title background sprite is disabled in this developer build; settled-menu particles extend outside the old 16:9 frame, so no image crop was applied. All 192 synthetic tests pass locally, including the native rebuild/signing fixture. Full gameplay and translated UI review remain pending. |
 
@@ -37,6 +39,34 @@ The supported-games table in [README.md](README.md#supported-patches) is the
 authoritative status list. Experimental modules require
 `--allow-experimental`; that flag acknowledges the documented visual state and
 does not weaken structural compatibility checks.
+
+### Marvel Cosmic Invasion 1.0-jayeldragon-display (2)
+
+On **2026-10-25**, the device owner reported successful installation and testing
+on a **Retroid Pocket Classic running Android 14**, with its **1240×1080**
+display. The centred, vertically stretched 4:3 picture worked correctly in menus
+and throughout approximately **30 minutes of gameplay**. This is user-reported
+physical-device evidence, distinct from the cloud's synthetic and archive checks.
+
+The owner also confirmed that the public macOS Terminal command in
+[the Mac build guide](games/marvel-cosmic-invasion/MAC_BUILD.md) worked perfectly
+with their own local original APK. This is the preferred workflow for future
+Marvel builds: run the Terminal launcher locally, keep the source APK on the
+Mac, and retain the local signing key. No game-file upload or cloud transfer is
+needed. The Mac model and macOS version were not recorded.
+
+The validated patch targets a **1240×930** displayed image with **75-pixel top
+and bottom borders**, retaining the original **1240×698** internal surface and
+the entire source picture. The owner confirmed the visual result; no separate
+pixel measurement was supplied. The working compositor patch, FNA3D, SDL3 and
+camera logic were not changed to record this result. Earlier cloud builds
+reproduced the signed experimental APK byte-for-byte and passed all 275 tests.
+
+This report covers the specified build, device, menus and session length. It
+does not separately establish sleep/resume, every touch overlay, every scene,
+longer sessions or other devices. The module remains experimental with those
+limits documented. No proprietary APK, extracted game file or signing material
+is included in this record or the repository.
 
 ### Hollow Knight 1.3.0.0 Mono port
 

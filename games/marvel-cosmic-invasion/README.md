@@ -1,11 +1,15 @@
 # Marvel Cosmic Invasion — experimental stretched presentation
 
 This device profile deliberately stretches the original picture. It does not
-expand the camera's field of view. Hardware validation is pending.
+expand the camera's field of view. The owner reported successful Retroid Pocket
+Classic / Android 14 validation on **2026-10-25**, covering menus and approximately
+**30 minutes of gameplay**. The module remains experimental within that scope.
 
 **Mac users:** follow [Build on your Mac](MAC_BUILD.md) for one Terminal command,
 automatic private tool installation, signing and verification. You supply the
 original APK locally; no game files are uploaded or included in this repository.
+The owner confirmed this Terminal workflow worked perfectly; it is the preferred
+method for future Marvel builds using their own local APK.
 
 Target: Retroid Pocket Classic, Android 14, full-screen 1240×1080 parent. The
 existing 1240×698 SDL SurfaceView layout remains 16:9 internally. A centred
@@ -22,10 +26,10 @@ before each draw, including menu transitions and resumed rendering. It holds
 only a weak reference to the Activity and does not accumulate scaling.
 
 The observer depends on the existing shim's install path, which this protected
-port invokes through native startup code. Its actual execution, SurfaceFlinger
-composition, device input mapping and protection acceptance are unverified.
-Separate Android touch/credit/diagnostic overlays are not transformed or removed;
-their appearance and interaction with the borders need a device test.
+port invokes through native startup code. The owner's locally built APK launched
+and displayed correctly during the reported hardware test. Separate Android
+touch/credit/diagnostic overlays are not transformed or removed; their complete
+input behavior and interaction with the borders were not separately reported.
 
 ## Compatibility and dependencies
 
@@ -98,8 +102,16 @@ preservation, unknown/corrupt/version-mismatched rejection and idempotence.
 A synthetic DEX assembly/disassembly test exercises the real smali toolchain
 when available. These tests do not execute Dalvik or SurfaceFlinger.
 
-Hardware acceptance: verify the entire source frame is visible, gameplay fills
-1240×930 without cropping, borders stay black, menus/resume retain the transform,
-controls work and frame pacing remains acceptable. Stop and report startup or
-protection failures; do not automatically change native rendering or security
-code as a fallback.
+User-reported hardware validation on **2026-10-25**: the macOS Terminal launcher
+successfully built from the owner's original APK, installation on the Retroid
+Pocket Classic / Android 14 succeeded, and centred stretched 4:3 presentation
+worked correctly in menus and approximately 30 minutes of gameplay. The working
+patch was unchanged for this documentation update. No APK was uploaded to the
+repository. See the [verification record](../../VERIFICATION.md#marvel-cosmic-invasion-10-jayeldragon-display-2)
+for evidence and scope.
+
+Further acceptance checks include precise pixel measurements, sleep/resume,
+all touch overlays, wider scene coverage and longer sessions. These were not
+separately reported. Stop and report startup or protection failures on other
+builds; do not automatically change native rendering or security code as a
+fallback.

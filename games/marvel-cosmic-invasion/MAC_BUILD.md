@@ -4,6 +4,14 @@ This builds the same experimental display patch without transferring the game
 through GitHub. You supply your original APK locally. The original stays untouched.
 The existing display patch is not changed by the launcher.
 
+**Confirmed by the device owner on 2026-10-25:** this exact Terminal workflow
+worked perfectly with their local original APK. The resulting build installed
+on a Retroid Pocket Classic running Android 14, with correct centred stretched
+4:3 presentation in menus and approximately 30 minutes of gameplay. This is the
+preferred method for future Marvel builds: build locally from your own APK,
+retain your local signing key, and transfer only the finished output to the
+Retroid. No APK upload or cloud file-transfer service is needed.
+
 Supports Apple Silicon and Intel Macs. Allow roughly 5 GB of free disk space and
 an internet connection for the first run. Homebrew, Android Studio, Xcode and
 administrator access are not required. Missing Python/Java and Android tools are
@@ -57,7 +65,8 @@ protection libraries and game assets stay unchanged.
 
 The intended display is **1240×930**, centred on the Classic's **1240×1080**
 screen, leaving **75 pixels above and below**. Internal rendering stays 1240×698.
-Actual device startup, overlays and display behavior remain experimental.
+Device startup and menu/gameplay presentation have the user validation above.
+Separate overlay, lifecycle and longer-session coverage remains experimental.
 
 Your Mac creates its own signing key. Therefore its whole-APK SHA-256 normally
 differs from the cloud test APK, even though the patched display DEX must always
@@ -119,5 +128,8 @@ The fresh private Python 3.12.15 / Java 21.0.13 bootstrap path also reproduced
 that exact APK, after downloading and verifying both runtimes.
 All 275 repository tests passed with native test dependencies enabled.
 The macOS Android alignment binary was inspected and contains both ARM64 and
-x86_64 code. macOS itself and Retroid hardware are unavailable in the cloud;
-their execution is not claimed as tested.
+x86_64 code. The owner subsequently confirmed successful macOS execution and
+Retroid hardware testing on 2026-10-25. The cloud agent did not perform those
+physical checks. The Mac model/macOS version, separate sleep/resume checks and
+pixel measurements were not recorded; the device report covers menus and
+approximately 30 minutes of gameplay on the Classic with Android 14.

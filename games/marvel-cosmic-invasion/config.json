@@ -5,11 +5,11 @@
   "engine": "FNA/FNA3D + SDL3 / Xamarin Mono AOT",
   "status": "experimental",
   "output_name": "Marvel-Cosmic-Invasion-stretched-4x3-experimental.apk",
-  "tested_versions": ["1.0-jayeldragon-display (2), ARM64; static validation only"],
+  "tested_versions": ["1.0-jayeldragon-display (2), ARM64; user-validated Retroid Pocket Classic / Android 14 on 2026-10-25"],
   "required_entries": ["AndroidManifest.xml", "classes2.dex"],
   "compatibility": {
     "strategy": "exact display-shim DEX and manifest identity guards; compositor transform only",
-    "visual_verification": "pending Retroid Pocket Classic hardware test",
-    "build": "Use this game's build.py to preserve every unrelated APK member and protection library."
+    "visual_verification": "User-reported success on 2026-10-25: centred stretched 4:3 works in menus and approximately 30 minutes of gameplay on Retroid Pocket Classic / Android 14; additional lifecycle and broader coverage not separately reported.",
+    "build": "Preferred workflow: run build-local.sh in macOS Terminal with the user's own local original APK; the owner confirmed this workflow successful. Unrelated APK members and protection libraries are preserved."
   }
 }
