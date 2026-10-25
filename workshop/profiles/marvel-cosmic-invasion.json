@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "game_id": "marvel-cosmic-invasion",
+  "original_apk_sha256": [
+    "d0c9587575f5bba17a5ac2f5ea3e56700b362f658aaaff84ae11c9b67eae18c9"
+  ],
+  "source_checksums": {
+    "games/marvel-cosmic-invasion/StretchWatcher.smali": "ba73be3b3605fb06392591746b20b6462a386585c23b1e0b480d73fa7f28e3bf",
+    "games/marvel-cosmic-invasion/build-local.sh": "1c9070c39d2cbdd5c529becf33b2ad77b99a007db8a3d3bbc112025a785f8754",
+    "games/marvel-cosmic-invasion/build.py": "bf647a2370a9a1cbdc8d66fa38d5214ee7c5d311328a0eb53a8874640ca2d7c8",
+    "games/marvel-cosmic-invasion/config.json": "cba0902d2901a2f37939cb26ea534d80ff715ac39775ca63d42f355d2ab9175e",
+    "games/marvel-cosmic-invasion/local_build.py": "8ef2505353a2c1cbccff32946223a1463986bbc8675a043353f11fac11572ba1",
+    "games/marvel-cosmic-invasion/patch_impl.py": "2720501889e260fc2b165a61439407919ea19d6799d86cb410258c30716e2895",
+    "games/marvel-cosmic-invasion/transform.smali": "8386f60dcc0d7c2fcf9bd55a95be2edc26c4a4575bd6f98fd802b140b18e1202"
+  },
+  "allowed_changes": [
+    "classes2.dex"
+  ],
+  "allowed_additions": [],
+  "dependencies": {
+    "python_requirements": [],
+    "setup_script": null
+  },
+  "target": {
+    "device": "Retroid Pocket Classic",
+    "android_api": 34,
+    "display": [
+      1240,
+      1080
+    ],
+    "picture": [
+      1240,
+      930
+    ],
+    "borders_top_bottom": [
+      75,
+      75
+    ],
+    "mode": "stretch",
+    "crop": false
+  },
+  "evidence": "Existing compositor patch unchanged. Owner reported successful local macOS build and Retroid Pocket Classic / Android 14 menus plus approximately 30 minutes of gameplay on 2026-10-25. Shared workshop reproduced the reference signed APK byte-for-byte on Linux; no new device run."
+}

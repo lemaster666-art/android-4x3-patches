@@ -71,6 +71,20 @@ The patcher looks for Android Build Tools on `PATH`, under `ANDROID_HOME`/`ANDRO
 
 ## Setup
 
+### Codex workshop: `4:3 time`
+
+In this Codex project, type **`4:3 time`** to start the reusable APK investigation
+and patch workshop. Supply an APK download link when asked. Codex analyses it
+privately, investigates the simplest safe stretched 4:3 method, develops and tests
+a game-specific patch when feasible, and delivers one Mac Terminal command that
+builds from your own local original APK. The default is Retroid Pocket Classic /
+Android 14, with a centred 1240×930 picture and 75-pixel top/bottom borders.
+
+See the [workflow, local builder and validation guide](workshop/README.md).
+Only code, synthetic tests, configuration and documentation belong in GitHub.
+This opt-in workflow does not assume every game is patchable or change existing
+game launchers.
+
 ### macOS or Linux
 
 ```sh
