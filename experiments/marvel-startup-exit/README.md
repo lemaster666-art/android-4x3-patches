@@ -36,6 +36,14 @@ and display DEX remain unchanged. This reduces a known difference from the
 earlier full-screen routine; the cause of the flash and its repair still need
 device confirmation. The Android-owned circular-icon launch screen is unchanged.
 
+**Latest device feedback:** the owner reports that the status bar still appears
+over the first two seconds of the PNG in the follow-up build. Matching the
+original flags has therefore **not resolved the flash**. Investigation now
+focuses on that startup window/control interval. Fade adjustments are deferred;
+the 500 ms fade-in, two-second fade-out and 500 ms black hold are left unchanged.
+Do not infer the cause from the two-second duration alone or claim a fix from
+host tests. The next step is the read-only installed-build capture below.
+
 This is owner-reported physical-device validation, distinct from host tests and
 cloud packaging checks. It applies to the exact supported APK and device, not
 every Android port. The overall optional builder retains its experimental name
@@ -210,6 +218,34 @@ same app external-files directory used by `spex-boot.txt`. Retrieve it privately
 ```
 
 No game content or diagnostic captures are published by the build scripts.
+
+## Capture the early status-bar flash without rebuilding
+
+Close Marvel with its working **Exit** option, connect and unlock the Retroid,
+and authorize USB debugging if prompted. This diagnostic helper uses the
+installed APK. It does not rebuild/install anything, force-stop the game, change
+settings or clear saves/logs. It refuses to start if Marvel is still running.
+
+From a downloaded source archive, run:
+
+```bash
+bash experiments/marvel-startup-exit/capture-status-bar.sh
+```
+
+It takes a window/insets baseline, launches Marvel normally, then captures 30
+window/display snapshots with device time and uptime markers. Leave the device
+untouched until it finishes. The single private `marvel-status-bar.txt` file is
+saved in a dated `marvel-status-bar-*` folder in your Mac's Downloads and
+revealed in Finder. Share it privately in the chat; the script uploads nothing
+and refuses an output directory inside the source checkout. No APK, artwork,+screenshot, video or save content is collected. Window dumps may include other
+visible app/window names, so keep the capture private.
+
+The capture is intended to distinguish the game's requested full-screen state
+from Android's actual bar visibility and window/control ownership. Sampling
+adds diagnostic overhead and is not an untouched loading-time benchmark.
+The helper's host tests use authored ADB responses; its output still needs to
+be collected and reviewed from the real Retroid. Optional developer arguments
+are `--adb /path/to/adb` and `--output-dir /private/new-capture-directory`.
 
 ## Optional per-game toast restriction through ADB
 

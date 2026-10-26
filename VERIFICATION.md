@@ -100,6 +100,13 @@ appeared over the PNG, and the startup toast remained despite ADB reporting
 two-second fade-out, a 500 ms full-black hold and full-screen flags matching the
 original display shim on Android 14; this follow-up requires a new device test.
 
+After that follow-up, the owner reported that the status bar still appears
+during the first two seconds of the PNG. The full-screen candidate is therefore
+not a verified repair. Work now isolates that early window/control transition;
+fade timing and the accepted Exit code remain unchanged. An installed-build
+ADB window/insets capture helper is provided for private diagnosis without
+another APK rebuild. Its host tests do not establish the device-side cause.
+
 Before this device test, the corrected source passed **309 automated tests** and
 a private cloud rebuild passed ZIP integrity, alignment, signing and unchanged
 member checks. The proven display DEX remained identical; **3238 other original
