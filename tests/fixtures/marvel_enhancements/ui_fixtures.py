@@ -42,15 +42,15 @@ public class Handler {
  public void draw(){for(OnPreDrawListener l:new ArrayList<>(pre))if(!l.onPreDraw())throw new AssertionError("Suppressed original drawing");}
 }''',
     'android/view/View.java': '''package android.view;import android.content.Context;import android.os.*;public class View {
- final Context context;final ViewTreeObserver tree=new ViewTreeObserver();public boolean drawing=true;public int flags;public final WindowInsets insets=new WindowInsets();
+ final Context context;final ViewTreeObserver tree=new ViewTreeObserver();public boolean drawing=true;public int flags,flagWrites;public final WindowInsets insets=new WindowInsets();
  public View(Context c){context=c;}public Context getContext(){return context;}public int getWidth(){return 1240;}public int getHeight(){return 1080;}
  public void setBackgroundColor(int color){}public void setAlpha(float a){if(a!=1f)throw new AssertionError("Do not animate whole-view alpha");}
  public void invalidate(){postInvalidateOnAnimation();}public void postInvalidateOnAnimation(){new Handler(Looper.getMainLooper()).postDelayed(()->{if(drawing)onFrame();},16);}protected void onFrame(){}
  public ViewTreeObserver getViewTreeObserver(){return tree;}public boolean hasWindowFocus(){return true;}public WindowInsets getRootWindowInsets(){return insets;}
- public int getSystemUiVisibility(){return flags;}public void setSystemUiVisibility(int f){flags=f;}
+ public int getSystemUiVisibility(){return flags;}public void setSystemUiVisibility(int f){flagWrites++;flags=f;}
 }''',
-    'android/view/Window.java': '''package android.view;public class Window {final View decor;final WindowInsetsController controller;public int flags;
- public Window(android.app.Activity a){decor=new View(a);controller=new WindowInsetsController(decor.insets);}public View getDecorView(){return decor;}public WindowInsetsController getInsetsController(){return controller;}public void clearFlags(int f){flags&=~f;}public void addFlags(int f){flags|=f;}}''',
+    'android/view/Window.java': '''package android.view;public class Window {final View decor;final WindowInsetsController controller;public int flags,writes;
+ public Window(android.app.Activity a){decor=new View(a);controller=new WindowInsetsController(decor.insets);}public View getDecorView(){return decor;}public WindowInsetsController getInsetsController(){return controller;}public void clearFlags(int f){writes++;flags&=~f;}public void addFlags(int f){writes++;flags|=f;}}''',
     'android/app/Activity.java': '''package android.app;public class Activity extends android.content.Context {final android.view.Window window=new android.view.Window(this);public boolean isFinishing(){return false;}public boolean isDestroyed(){return false;}public android.view.Window getWindow(){return window;}public void runOnUiThread(Runnable r){if(android.os.Looper.myLooper()==android.os.Looper.getMainLooper())r.run();else new android.os.Handler(android.os.Looper.getMainLooper()).post(r);}}''',
     'com/vocies61/marvelcosmic/SplashView.java': '''package com.vocies61.marvelcosmic;public class SplashView extends android.view.View {
  public int finishes;public SplashView(android.app.Activity a){super(a);}protected void onFrame(){EnhancedUi.draw(this,new android.graphics.Canvas());}public void finishEnhancedSplash(){finishes++;drawing=false;}
@@ -62,18 +62,17 @@ public class StartupHarness {
  public static void main(String[] args)throws Exception {
   Looper.getMainLooper();boolean legacy=args[0].equals("legacy");if(legacy)Build.VERSION.SDK_INT=29;
   Activity activity=new Activity();View decor=activity.getWindow().getDecorView();ViewTreeObserver tree=decor.getViewTreeObserver();
-  ViewTreeObserver.OnWindowFocusChangeListener oldFocus=f->{};ViewTreeObserver.OnPreDrawListener oldDraw=()->true;tree.addOnWindowFocusChangeListener(oldFocus);tree.addOnPreDrawListener(oldDraw);
+  int[] originalCallbacks={0,0};ViewTreeObserver.OnWindowFocusChangeListener oldFocus=f->originalCallbacks[0]++;ViewTreeObserver.OnPreDrawListener oldDraw=()->{originalCallbacks[1]++;return true;};tree.addOnWindowFocusChangeListener(oldFocus);tree.addOnPreDrawListener(oldDraw);
+  decor.flags=5894;decor.insets.visible=0;activity.getWindow().flags=WindowManager.LayoutParams.FLAG_FULLSCREEN;
   SplashView splash=new SplashView(activity);EnhancedUi.attach(splash);Handler.advanceTo(250);
   int initialMid=Canvas.alphas.get(Canvas.alphas.size()-1);check(initialMid>=120 && initialMid<=140,"PNG fade-in must take 500ms");Handler.advanceTo(1000);
   check(splash.finishes==0,"Splash disappeared during loading");check(Canvas.alphas.get(Canvas.alphas.size()-1)==255,"PNG not opaque while loading");
-  int previous=activity.getWindow().getInsetsController().hides;
-  decor.insets.visible=1;decor.flags=0;tree.draw();
-  check(legacy?decor.flags==5894:activity.getWindow().getInsetsController().hides>previous,"Status bar alone not rehidden before draw");
-  check(decor.flags==5894,"Modern hide did not preserve original SDL full-screen flags");
-  decor.flags=0;decor.insets.visible=0;tree.draw();check(decor.flags==5894,"Legacy reset not corrected before insets visibility updates");
-  previous=activity.getWindow().getInsetsController().hides;tree.focus(true);
-  check(legacy?decor.flags==5894:activity.getWindow().getInsetsController().hides>previous,"Focus regain did not restore immersive mode");
-  check(tree.focus.contains(oldFocus) && tree.pre.contains(oldDraw),"Replaced SDL observers");
+  check(decor.flags==5894 && activity.getWindow().flags==WindowManager.LayoutParams.FLAG_FULLSCREEN,"Changed original full-screen state");
+  decor.insets.visible=1;decor.flags=0;tree.draw();tree.focus(true);
+  check(decor.flags==0 && decor.insets.visible==1,"Helper overrides original window policy");
+  check(originalCallbacks[0]==1 && originalCallbacks[1]==1,"Lost original SDL callbacks");
+  check(tree.focus.size()==1 && tree.pre.size()==1,"Added competing startup observers");
+  decor.flags=5894;decor.insets.visible=0;
   if(args[0].equals("paused"))splash.drawing=false;
   int samples=Canvas.alphas.size();long start=SystemClock.now;
   Thread worker=new Thread(()->{result=EnhancedUi.handoff(activity);returned=true;});worker.start();
@@ -102,11 +101,12 @@ public class StartupHarness {
    check(returned && result && splash.finishes==1,"Completed fade did not release exactly once");
    check(Canvas.alphas.get(Canvas.alphas.size()-1)==0,"Game released before black was drawn");
    int last=256;for(int i=samples;i<Canvas.alphas.size();i++){int a=Canvas.alphas.get(i);check(a<=last,"Fade reversed");last=a;}
-   check(tree.focus.size()==2 && tree.pre.size()==2,"Startup guard removed before handoff coverage");
+   check(tree.focus.size()==1 && tree.pre.size()==1,"Added window handling at handoff");
    Handler.advanceTo(SystemClock.now+2000);
   }
   check(tree.focus.size()==1 && tree.pre.size()==1,"Startup observers leaked into gameplay");
   check(tree.focus.contains(oldFocus) && tree.pre.contains(oldDraw),"Removed original SDL observers");
+  check(decor.flagWrites==0 && activity.getWindow().writes==0 && activity.getWindow().getInsetsController().hides==0 && activity.getWindow().getInsetsController().behavior==0,"Helper competes with original bar handling");
   Handler.advanceTo(start+65000);check(splash.finishes<=1,"Stale watchdog finished twice");
   System.out.println("PASS startup "+args[0]);
  }

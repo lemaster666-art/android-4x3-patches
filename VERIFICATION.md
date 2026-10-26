@@ -107,6 +107,15 @@ fade timing and the accepted Exit code remain unchanged. An installed-build
 ADB window/insets capture helper is provided for private diagnosis without
 another APK rebuild. Its host tests do not establish the device-side cause.
 
+The private window capture subsequently showed full-screen flags and a hidden
+status-bar source in all 28 samples containing the game window; the system
+launch window had visible bars beforehand. Timed screenshots did not catch the
+owner-reported flash. A controlled regression build now removes every added
+splash-helper bar request and window observer, leaving the original
+DisplayFix/SDL full-screen policy as the sole owner. The accepted Exit code and
+fade timings are unchanged. This comparison still needs device validation and
+is not recorded as a successful repair.
+
 Before this device test, the corrected source passed **309 automated tests** and
 a private cloud rebuild passed ZIP integrity, alignment, signing and unchanged
 member checks. The proven display DEX remained identical; **3238 other original

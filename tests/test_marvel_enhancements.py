@@ -215,7 +215,7 @@ def test_java_finish_waits_for_target_activity_destruction(tmp_path):
  assert 'PASS activity lifecycle' in result.stdout
 
 
-def test_java_startup_fade_immersive_and_pause_recovery(tmp_path):
+def test_java_startup_fade_original_window_policy_and_pause_recovery(tmp_path):
  import runpy
  jdk=os.environ.get('MCI_JDK')
  if not jdk:pytest.skip('Set MCI_JDK to execute authored startup UI tests')

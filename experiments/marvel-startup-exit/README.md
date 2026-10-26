@@ -27,22 +27,24 @@ loading. Once the first logo frame is ready, it fades out for **two seconds**,
 holds **full black for 500 ms**, then releases that frame. The extra 2.5 seconds
 are deliberate presentation time after readiness, not necessary loading time.
 
-The full-screen candidate now matches the original display shim by applying
-SDL-style immersive flags as well as Android's newer bar-hiding API on Android
-14. Previously the helper applied the legacy flags only before API 30. Its
-bounded observers also detect a legacy-flag reset before insets visibility has
-updated. SDL's existing listeners and the accepted Exit helper, native bridge
-and display DEX remain unchanged. This reduces a known difference from the
-earlier full-screen routine; the cause of the flash and its repair still need
-device confirmation. The Android-owned circular-icon launch screen is unchanged.
+The previous full-screen candidate copied the original shim's flags into an
+additional startup controller. The owner still observed the bar in the first
+two seconds of the PNG, so that candidate **did not resolve the flash**. A
+private capture showed the game window already full-screen and the status bar
+marked hidden in all 28 samples containing that window. This does not identify
+the pixels visible during the reported flash. Timed screenshots did not catch it.
 
-**Latest device feedback:** the owner reports that the status bar still appears
-over the first two seconds of the PNG in the follow-up build. Matching the
-original flags has therefore **not resolved the flash**. Investigation now
-focuses on that startup window/control interval. Fade adjustments are deferred;
-the 500 ms fade-in, two-second fade-out and 500 ms black hold are left unchanged.
-Do not infer the cause from the two-second duration alone or claim a fix from
-host tests. The next step is the read-only installed-build capture below.
+**Current controlled regression test:** the authored splash helper no longer
+changes window flags, system-bar visibility or behavior, and installs no window
+focus/pre-draw observers. Full-screen ownership belongs solely to the original
+DisplayFix/SDL code used by the baseline 4:3 build. This removes the competing
+startup controller rather than adding another bar-hiding mechanism. The original
+native lifecycle, manifest, display DEX, accepted Exit helper and fade timings
+remain unchanged. This is not a full APK rollback: it retains the selected PNG
+and working Exit repair. It tests whether the added window handling contributes
+to the regression; it **does not yet establish a repaired status bar**. No further
+capture is required for the owner's next visual comparison. The Android-owned
+circular-icon launch screen is unchanged.
 
 This is owner-reported physical-device validation, distinct from host tests and
 cloud packaging checks. It applies to the exact supported APK and device, not
@@ -95,13 +97,11 @@ size (maximum 4096 in either dimension and 12 megapixels).
   `0accefb0c85def38839d3e3015d130967a21b7545869f6cefcd7efc23bcc2fe1`.
 - The custom splash displays the **entire selected PNG** stretched into a
   centered 4:3 rectangle: 1240 x 930 with 75-pixel top/bottom borders when its
-  full-screen View is 1240 x 1080. It requests immersive mode before drawing.
+  full-screen View is 1240 x 1080. The original DisplayFix/SDL code owns immersive
+  mode; this splash helper makes no window/insets requests.
   It has a 500 ms fade-in, no zoom/gradient/title/port-credit/donation button,
-  and no promotional tap target. Additional window-focus and pre-draw observers
-  restore hidden system bars during startup, including when only the status bar
-  becomes visible. They do not replace SDL's listeners, alter surface geometry
-  or disable Android's normal swipe access to system bars after startup. They
-  are removed two seconds after handoff, or immediately on splash detachment.
+  and no promotional tap target. It preserves the original window listeners,
+  flags and insets policy during loading, focus changes and the logo handoff.
 - Splash dismissal is triggered by a matching game-frame callback, replacing
   the seven-second dismissal timer. The PNG fades to its black backdrop over
   **2000 ms**, holds full black for **500 ms**, then lets the original graphics
@@ -305,18 +305,19 @@ handoff), JNI ABI checks against JDK headers, JNI/Mono loader argument/error
 execution with authored doubles, and Java destruction/exit ordering. These
 host tests cannot establish Android runtime behavior.
 
-The startup-only follow-up passed **310 automated tests** and a fresh private
+The controlled window-policy follow-up passed **315 automated tests** and a fresh private
 rebuild/sign/alignment/integrity check. An executable Java UI harness checks
 the 500 ms fade-in, monotonic 2000 ms alpha reduction and a full 500 ms black
 hold before game release, including when the first black redraw is delayed, a
 fully visible PNG during loading, unchanged complete-source 4:3 bounds,
-status-bar-only and focus recovery, SDL-style flag recovery on Android 14 even
-before the insets report visible bars, preservation of existing observers,
-pre-API-30 behavior, listener cleanup and safe paused/detached recovery. Against
+absence of helper window-flag/insets writes at attach, focus changes and
+handoff, preservation of existing SDL observers and callbacks, pre-API-30
+behavior and safe paused/detached recovery. Against
 the corrected Exit cloud reference, only `classes3.dex` and signature metadata
 changed: the managed helper, native bridge, `classes.dex` and baseline
 `classes2.dex` remained byte-for-byte identical. This is host/package evidence;
-the new fade/black hold and status-bar candidate still need Retroid testing.
+the removal of the added controller still needs Retroid testing. Host checks
+cannot establish that a physical status-bar flash has disappeared.
 
 With a private .NET SDK and JDK prepared, run the complete tests with:
 
