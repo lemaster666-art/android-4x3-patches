@@ -1,0 +1,14 @@
+{
+  "dotnet_version": "8.0.427",
+  "dotnet": {
+    "Linux:x86_64": ["linux-x64", "85725692f465f5024b9b42a159a29d9f73e8c57ad9e8bfe1e7028a505d18031d68931e8aa3f9de44145b08170dde897c8a78e1aa18d4219698b6891af7095d39"],
+    "Darwin:x86_64": ["osx-x64", "a6c6d0a3708b15e20285f4f662195b6fd276e3df2fc91c0a38f30681ff8a23d5e322ada8a92e9b410343449eab635d01b30a4f55aeef6f884651a559cce07707"],
+    "Darwin:arm64": ["osx-arm64", "79786b93f249d233b15f1d6338d4798bd71c8143f267c5e84de76c9eb8a1054920e56ea5478f7bddfb74b951cc58aaca11fbd780cf134350b7cb7cdcb42a8c8c"]
+  },
+  "zig": {
+    "Linux:x86_64": ["https://files.pythonhosted.org/packages/0c/b7/ecfdce6368cc3664d301f7f52db4fe1004aa7da7a12c4a9bf1de534ff6ab/ziglang-0.13.0-py3-none-manylinux_2_12_x86_64.manylinux2010_x86_64.musllinux_1_1_x86_64.whl", "3ce0c9f16547e5d61b32e0d226926e9a2552ef4b91fccf7ab5ea1a623a77824b"],
+    "Darwin:x86_64": ["https://files.pythonhosted.org/packages/4b/38/4f2ef2b1d727d7317b08ef309e52d8c90089272b57d5d940c74524cc4315/ziglang-0.13.0-py3-none-macosx_12_0_x86_64.whl", "d1b00173b8a5bfbaccb255240b8c091bd523c13743178bc248355ec6484fced7"],
+    "Darwin:arm64": ["https://files.pythonhosted.org/packages/e6/14/3587387c715175ed5bb103c94c0df554fabac5bc97de153e9eec2fa905aa/ziglang-0.13.0-py3-none-macosx_12_0_arm64.whl", "5408ad3a6cb342fb4e4e2351a3725adfcae82eaadebe85fdbbdad9c0ac8b1e24"]
+  },
+  "platform": ["https://dl.google.com/android/repository/platform-34-ext7_r03.zip", "16fdb74c55e59ae3ef52def135aec713508467bd56d7dabcd8c9be31fa8b20f3"]
+}
