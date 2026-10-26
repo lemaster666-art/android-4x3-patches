@@ -2,8 +2,29 @@
 
 This is a separate, opt-in local builder. It preserves the working
 `games/marvel-cosmic-invasion/` patch and its original one-command Mac launcher.
-The combined APK is **experimental: compilation, package integrity and authored
-host tests are verified; the new runtime behavior needs Retroid testing**.
+The combined APK is **experimental and partially failed its first Retroid test**.
+Compilation, package integrity and authored host tests passed, but they do not
+establish Android runtime callback compatibility.
+
+Owner-reported device result, 26 October 2026 (Retroid Pocket Classic, Android 14):
+installation as an update succeeded; the selected PNG appeared at a stable size
+without the previous aspect-ratio flicker. The roughly six-second pre-logo black
+gap remained, the artwork disappeared abruptly, and Exit still left a black
+screen with audio running until the owner manually removed the task. The
+readiness handoff and Exit repair are **not device-validated successes**.
+The owner's diagnostic capture confirmed helper startup, followed on all three
+recorded launches by failure to attach the frame/completion hooks. Static metadata
+inspection of the exact supported APK identified the cause: the authored helper
+looked up `AudioManager._studioSystem` as non-public, but the original assembly
+declares it public. The fallback removed the splash immediately, and the missing
+Exiting observer prevented the successful-completion gate from closing the app.
+
+The follow-up source fixes that lookup and names individual guard failures in
+diagnostics. The host audio fixture now matches the original's public field;
+this reproduces the failure before the fix. **The corrected build still requires
+a new device test**: a correct lookup alone does not establish successful fade,
+logo timing, audio shutdown or task removal on Android. No loading timer was
+extended and the working 4:3 patch remains unchanged. Raw device logs stay private.
 
 ## Build on your Mac
 

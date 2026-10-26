@@ -140,6 +140,9 @@ def test_managed_success_failure_and_handoff_execution(tmp_path):
   assert result.returncode==0,result.stdout+result.stderr
   assert 'PASS '+mode in result.stdout
   text=(log/'android4x3-enhancements.txt').read_text()
+  assert 'frame handoff and completion observation armed before initial context load' in text
+  assert 'frame handoff unavailable:' not in text
+  assert 'splash handoff acknowledged:' in text
   if mode!='startup-error':assert text.index('normal game completion confirmed')<text.index('FMOD release: OK')
 
 

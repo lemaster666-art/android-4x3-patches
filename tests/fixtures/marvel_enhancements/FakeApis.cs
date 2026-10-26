@@ -60,7 +60,9 @@ namespace Paris.Engine.Context {
 }
 namespace Paris.Engine.Audio {
  public class AudioManagerBase{public static AudioManagerBase Singleton;}
- public class AudioManager:AudioManagerBase{FMOD.Studio.System _studioSystem=new FMOD.Studio.System{live=true};}
+ // The supported original declares this field PUBLIC (not private). Match its
+ // metadata so reflection tests exercise the Android build's access contract.
+ public class AudioManager:AudioManagerBase{public FMOD.Studio.System _studioSystem=new FMOD.Studio.System{live=true};}
 }
 namespace FMOD{public enum RESULT{OK,ERR_INVALID_HANDLE}}
 namespace FMOD.Studio {

@@ -74,9 +74,15 @@ namespace Android4x3.Marvel {
     var ownerField=typeof(ContextManager).GetField("_game",BindingFlags.Instance|BindingFlags.NonPublic);
     managerField=typeof(Game).GetField("graphicsDeviceManager",BindingFlags.Instance|BindingFlags.NonPublic);
     loadingThreadField=typeof(ContextManager).GetField("_loadingThread",BindingFlags.Instance|BindingFlags.NonPublic);
-    studioField=typeof(AudioManager).GetField("_studioSystem",BindingFlags.Instance|BindingFlags.NonPublic);
-    if(context==null || ownerField==null || managerField==null || loadingThreadField==null || studioField==null || managerField.IsInitOnly)
-     throw new InvalidOperationException("Audited mutable frame-handoff context unavailable");
+    // The supported assembly declares _studioSystem public. NonPublic alone
+    // rejects the real game before either the readiness or Exit hook attaches.
+    studioField=typeof(AudioManager).GetField("_studioSystem",BindingFlags.Instance|BindingFlags.Public);
+    if(context==null)throw new InvalidOperationException("ContextManager.Singleton unavailable");
+    if(ownerField==null)throw new InvalidOperationException("Missing ContextManager._game (non-public instance)");
+    if(managerField==null)throw new InvalidOperationException("Missing Game.graphicsDeviceManager (non-public instance)");
+    if(loadingThreadField==null)throw new InvalidOperationException("Missing ContextManager._loadingThread (non-public instance)");
+    if(studioField==null)throw new InvalidOperationException("Missing AudioManager._studioSystem (public instance)");
+    if(managerField.IsInitOnly)throw new InvalidOperationException("Game.graphicsDeviceManager is read-only");
     var instance=ownerField.GetValue(context) as Game;
     if(instance==null || instance.GetType().FullName!="Paris.Paris")throw new InvalidOperationException("Unexpected game instance");
     var manager=managerField.GetValue(instance) as IGraphicsDeviceManager;
@@ -103,7 +109,7 @@ namespace Android4x3.Marvel {
      StopAudio();
      if(marvel_finish(activity.Handle)==0) Write("Activity finish callback failed");
     } else {
-     Write("no successful game completion; keeping original diagnostic behavior");
+     Write("completion gate not satisfied: gameAttached="+(game!=null)+"; exitObserved="+exitObserved+"; lastErrorPresent="+!String.IsNullOrEmpty(Paris.Program.LastError)+"; keeping original diagnostic behavior");
      marvel_fail_open(activity.Handle);
     }
    } catch(Exception e) {
