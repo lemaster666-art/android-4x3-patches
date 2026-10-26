@@ -92,6 +92,14 @@ universal Exit patch for other Android ports; each requires an audited completio
 and cleanup path. The accepted Exit implementation and the working 4:3 code were
 unchanged for this documentation update.
 
+The owner's subsequent test of startup-only revision
+`81cec6a94dd6c9b7be54c01c33d613b14f77a8f4` confirmed successful USB update
+installation from the Mac and a working 500 ms fade. The status bar still
+appeared over the PNG, and the startup toast remained despite ADB reporting
+`TOAST_WINDOW: ignore`. Both limitations remain open. A follow-up requests a
+two-second fade-out, a 500 ms full-black hold and full-screen flags matching the
+original display shim on Android 14; this follow-up requires a new device test.
+
 Before this device test, the corrected source passed **309 automated tests** and
 a private cloud rebuild passed ZIP integrity, alignment, signing and unchanged
 member checks. The proven display DEX remained identical; **3238 other original

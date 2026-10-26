@@ -15,13 +15,26 @@ briefly appears during startup. The owner did not separately confirm the exact
 fade duration or every logo frame/audio cue. Saved-progress checks, repeated
 relaunch and pause/resume during loading were not separately reported.
 
-**Current startup-only follow-up needs a new device test.** It adds a 500 ms
-readiness-triggered PNG fade to black and restores immersive mode at focus and
-handoff boundaries. Its bounded startup observers leave SDL's existing listeners
-intact. These address the reported presentation issues without changing the
-accepted Exit helper, native bridge or display DEX. The precise cause of the
-original status-bar appearance remains unconfirmed; SDL can reset full-screen
-flags during startup and its own re-hide callback waits two seconds.
+The owner also tested revision `81cec6a94dd6c9b7be54c01c33d613b14f77a8f4`:
+USB update installation from the Mac and the 500 ms fade worked, but the status
+bar still appeared **over the PNG**. Setting `TOAST_WINDOW` to `ignore` succeeded
+yet the startup toast remained. Neither attempt is recorded as a fix for its
+respective issue.
+
+**Current startup-only follow-up needs a new device test.** At the owner's
+request it uses a 500 ms PNG fade-in, then keeps the image fully visible during
+loading. Once the first logo frame is ready, it fades out for **two seconds**,
+holds **full black for 500 ms**, then releases that frame. The extra 2.5 seconds
+are deliberate presentation time after readiness, not necessary loading time.
+
+The full-screen candidate now matches the original display shim by applying
+SDL-style immersive flags as well as Android's newer bar-hiding API on Android
+14. Previously the helper applied the legacy flags only before API 30. Its
+bounded observers also detect a legacy-flag reset before insets visibility has
+updated. SDL's existing listeners and the accepted Exit helper, native bridge
+and display DEX remain unchanged. This reduces a known difference from the
+earlier full-screen routine; the cause of the flash and its repair still need
+device confirmation. The Android-owned circular-icon launch screen is unchanged.
 
 This is owner-reported physical-device validation, distinct from host tests and
 cloud packaging checks. It applies to the exact supported APK and device, not
@@ -75,7 +88,7 @@ size (maximum 4096 in either dimension and 12 megapixels).
 - The custom splash displays the **entire selected PNG** stretched into a
   centered 4:3 rectangle: 1240 x 930 with 75-pixel top/bottom borders when its
   full-screen View is 1240 x 1080. It requests immersive mode before drawing.
-  It has a 250 ms fade-in, no zoom/gradient/title/port-credit/donation button,
+  It has a 500 ms fade-in, no zoom/gradient/title/port-credit/donation button,
   and no promotional tap target. Additional window-focus and pre-draw observers
   restore hidden system bars during startup, including when only the status bar
   becomes visible. They do not replace SDL's listeners, alter surface geometry
@@ -83,14 +96,15 @@ size (maximum 4096 in either dimension and 12 megapixels).
   are removed two seconds after handoff, or immediately on splash detachment.
 - Splash dismissal is triggered by a matching game-frame callback, replacing
   the seven-second dismissal timer. The PNG fades to its black backdrop over
-  **500 ms before** the original graphics manager presents the first drawable
-  LogoScreen frame. Canvas redraws drive the fade independently of Android's
-  animation-scale setting; the game is released after the zero-alpha artwork
-  has been drawn. This is a fade to black followed by the original logos, not
+  **2000 ms**, holds full black for **500 ms**, then lets the original graphics
+  manager present the first drawable LogoScreen frame. Canvas redraws drive the
+  fade independently of Android's animation-scale setting. The hold starts when
+  zero-alpha artwork is actually drawn; a delayed redraw cannot shorten it.
+  This is a fade to black followed by the original logos, not
   a crossfade that starts the logos underneath the artwork.
   The game timer is reset after this short wait, preserving subsequent animation
-  progression. A non-drawing/paused view recovers after 1000 ms; the game-thread
-  wait is bounded to 1250 ms and reports unsuccessful handoff on recovery.
+  progression. A non-drawing/paused view recovers after 4000 ms; the game-thread
+  wait is bounded to 4500 ms and reports unsuccessful handoff on recovery.
   No developer-logo assets or logo game code are modified.
 - After the original bootstrap returns normally and a game Exiting event was
   observed, the helper stops FMOD events, flushes commands and releases its
@@ -211,10 +225,12 @@ marvel_adb="$HOME/Downloads/platform-tools/adb" &&
 
 Look for `TOAST_WINDOW: ignore`, then close Marvel normally and launch it again.
 This targets only this game's toast windows, not the entire device. It changes
-neither the APK nor its saves, and requires no root. **Its effect on the observed
-APKVision toast is not device-verified.** Android 14 can render text toasts in
-SystemUI rather than the game's own window, so that toast may still appear even
-when this operation reports `ignore`. Disabling notification permission also
+neither the APK nor its saves, and requires no root. **The owner tested this on
+the Retroid: the operation reported `ignore`, but the startup toast still
+appeared. It is not a working suppression method for that observed toast.**
+Android 14 can render text toasts in SystemUI rather than the game's own window;
+the confirmed result is consistent with that limitation, but does not by itself
+prove which code creates this toast. Disabling notification permission also
 does not reliably block a foreground app's toasts.
 
 To remove this override and restore Android's default policy, paste:
@@ -255,14 +271,16 @@ host tests cannot establish Android runtime behavior.
 
 The startup-only follow-up passed **310 automated tests** and a fresh private
 rebuild/sign/alignment/integrity check. An executable Java UI harness checks
-monotonic 500 ms alpha reduction, the black endpoint before game release, a
+the 500 ms fade-in, monotonic 2000 ms alpha reduction and a full 500 ms black
+hold before game release, including when the first black redraw is delayed, a
 fully visible PNG during loading, unchanged complete-source 4:3 bounds,
-status-bar-only and focus recovery, preservation of existing observers,
+status-bar-only and focus recovery, SDL-style flag recovery on Android 14 even
+before the insets report visible bars, preservation of existing observers,
 pre-API-30 behavior, listener cleanup and safe paused/detached recovery. Against
 the corrected Exit cloud reference, only `classes3.dex` and signature metadata
 changed: the managed helper, native bridge, `classes.dex` and baseline
 `classes2.dex` remained byte-for-byte identical. This is host/package evidence;
-the new fade and status-bar behavior still need Retroid testing.
+the new fade/black hold and status-bar candidate still need Retroid testing.
 
 With a private .NET SDK and JDK prepared, run the complete tests with:
 

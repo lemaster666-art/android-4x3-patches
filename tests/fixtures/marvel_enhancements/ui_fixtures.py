@@ -63,11 +63,14 @@ public class StartupHarness {
   Looper.getMainLooper();boolean legacy=args[0].equals("legacy");if(legacy)Build.VERSION.SDK_INT=29;
   Activity activity=new Activity();View decor=activity.getWindow().getDecorView();ViewTreeObserver tree=decor.getViewTreeObserver();
   ViewTreeObserver.OnWindowFocusChangeListener oldFocus=f->{};ViewTreeObserver.OnPreDrawListener oldDraw=()->true;tree.addOnWindowFocusChangeListener(oldFocus);tree.addOnPreDrawListener(oldDraw);
-  SplashView splash=new SplashView(activity);EnhancedUi.attach(splash);Handler.advanceTo(1000);
+  SplashView splash=new SplashView(activity);EnhancedUi.attach(splash);Handler.advanceTo(250);
+  int initialMid=Canvas.alphas.get(Canvas.alphas.size()-1);check(initialMid>=120 && initialMid<=140,"PNG fade-in must take 500ms");Handler.advanceTo(1000);
   check(splash.finishes==0,"Splash disappeared during loading");check(Canvas.alphas.get(Canvas.alphas.size()-1)==255,"PNG not opaque while loading");
   int previous=activity.getWindow().getInsetsController().hides;
   decor.insets.visible=1;decor.flags=0;tree.draw();
   check(legacy?decor.flags==5894:activity.getWindow().getInsetsController().hides>previous,"Status bar alone not rehidden before draw");
+  check(decor.flags==5894,"Modern hide did not preserve original SDL full-screen flags");
+  decor.flags=0;decor.insets.visible=0;tree.draw();check(decor.flags==5894,"Legacy reset not corrected before insets visibility updates");
   previous=activity.getWindow().getInsetsController().hides;tree.focus(true);
   check(legacy?decor.flags==5894:activity.getWindow().getInsetsController().hides>previous,"Focus regain did not restore immersive mode");
   check(tree.focus.contains(oldFocus) && tree.pre.contains(oldDraw),"Replaced SDL observers");
@@ -80,18 +83,27 @@ public class StartupHarness {
    splash.drawing=false;EnhancedUi.detached(splash);worker.join(1000);check(returned && !result,"Detached splash left worker blocked");
    check(tree.focus.size()==1 && tree.pre.size()==1,"Detach leaked observers");
   }else if(args[0].equals("paused")) {
-   Handler.advanceTo(start+1000);worker.join(1000);check(returned && !result && splash.finishes==1,"Paused redraw did not recover safely");
-   Handler.advanceTo(start+3000);
+   Handler.advanceTo(start+4000);worker.join(1000);check(returned && !result && splash.finishes==1,"Paused redraw did not recover safely");
+   Handler.advanceTo(start+6000);
   }else {
-   Handler.advanceTo(start+250);check(!returned && splash.finishes==0,"Presented game before fade completed");
-   int mid=Canvas.alphas.get(Canvas.alphas.size()-1);check(mid>=120 && mid<=140,"Half-fade must be visibly intermediate");
-   Handler.advanceTo(start+499);check(!returned && splash.finishes==0,"Fade ended before 500ms");
-   Handler.advanceTo(start+516);worker.join(1000);
+   if(args[0].equals("late-black")) {
+    splash.drawing=false;Handler.advanceTo(start+2500);splash.drawing=true;splash.postInvalidateOnAnimation();Handler.advanceTo(start+2520);
+   }else {
+    Handler.advanceTo(start+1000);check(!returned && splash.finishes==0,"Presented game before fade completed");
+    int mid=Canvas.alphas.get(Canvas.alphas.size()-1);check(mid>=120 && mid<=140,"Half-fade must be visibly intermediate");
+    Handler.advanceTo(start+1999);check(!returned && splash.finishes==0,"Fade ended before 2000ms");
+    Handler.advanceTo(start+2024);
+   }
+   check(Canvas.alphas.get(Canvas.alphas.size()-1)==0 && !returned,"Full black not held before logo presentation");
+   long blackAt=-1;for(int i=samples;i<Canvas.alphas.size();i++)if(Canvas.alphas.get(i)==0){blackAt=Canvas.times.get(i);break;}
+   check(blackAt>=start+2000,"Black endpoint arrived too early");
+   Handler.advanceTo(blackAt+499);check(!returned && splash.finishes==0,"Black hold must last 500ms from actual redraw");
+   Handler.advanceTo(blackAt+516);worker.join(1000);
    check(returned && result && splash.finishes==1,"Completed fade did not release exactly once");
    check(Canvas.alphas.get(Canvas.alphas.size()-1)==0,"Game released before black was drawn");
    int last=256;for(int i=samples;i<Canvas.alphas.size();i++){int a=Canvas.alphas.get(i);check(a<=last,"Fade reversed");last=a;}
    check(tree.focus.size()==2 && tree.pre.size()==2,"Startup guard removed before handoff coverage");
-   Handler.advanceTo(start+2600);
+   Handler.advanceTo(SystemClock.now+2000);
   }
   check(tree.focus.size()==1 && tree.pre.size()==1,"Startup observers leaked into gameplay");
   check(tree.focus.contains(oldFocus) && tree.pre.contains(oldDraw),"Removed original SDL observers");

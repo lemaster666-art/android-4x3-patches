@@ -35,14 +35,17 @@ public final class EnhancedUi {
     private static long fadeStartedAt;
     private static FadeRequest pendingFade;
     private static ImmersiveGuard immersiveGuard;
-    private static final long FADE_OUT_MS=500;
-    private static final long FADE_RECOVERY_MS=1000;
-    private static final long HANDOFF_WAIT_MS=1250;
+    private static final long FADE_IN_MS=500;
+    private static final long FADE_OUT_MS=2000;
+    private static final long BLACK_HOLD_MS=500;
+    private static final long FADE_RECOVERY_MS=4000;
+    private static final long HANDOFF_WAIT_MS=4500;
+    private static long blackDrawnAt=-1;
     private static final Paint PAINT=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
     private static final RectF DEST=new RectF();
 
     public static void attach(final SplashView view) {
-        current=new WeakReference<>(view); fading=false; attachedAt=SystemClock.uptimeMillis();
+        current=new WeakReference<>(view); fading=false; blackDrawnAt=-1; attachedAt=SystemClock.uptimeMillis();
         view.setBackgroundColor(Color.BLACK); view.setAlpha(1f);
         if(immersiveGuard!=null)immersiveGuard.close();
         if(view.getContext() instanceof Activity)
@@ -70,14 +73,16 @@ public final class EnhancedUi {
         int w=unit*4,h=unit*3;float left=(view.getWidth()-w)/2f,top=(view.getHeight()-h)/2f;
         DEST.set(left,top,left+w,top+h);
         long now=SystemClock.uptimeMillis();
-        float fade=Math.min(1f,(now-attachedAt)/250f);
+        float fade=Math.min(1f,(now-attachedAt)/(float)FADE_IN_MS);
         float out=fading?Math.min(1f,(now-fadeStartedAt)/(float)FADE_OUT_MS):0f;
         fade*=1f-out;
         PAINT.setAlpha(Math.round(255f*fade));
         canvas.drawBitmap(artwork,null,DEST,PAINT); // Whole source rectangle; no crop or zoom.
-        if(fading && out>=1f) {
+        if(fading && out>=1f && blackDrawnAt<0)blackDrawnAt=now;
+        if(fading && blackDrawnAt>=0 && now-blackDrawnAt>=BLACK_HOLD_MS) {
             // Release the game only after the zero-alpha artwork/black backdrop
-            // has been drawn. This fade does not depend on Android animator scales.
+            // has stayed drawn for the requested hold. Time it from the actual
+            // black draw, not an estimated fade deadline after a stalled redraw.
             MAIN.post(new Runnable(){public void run(){finish(view,true);}});
         }else if(fading || fade<1f)view.postInvalidateOnAnimation();
     }
@@ -88,7 +93,7 @@ public final class EnhancedUi {
         activity.runOnUiThread(new Runnable(){public void run(){
             final SplashView view=current.get();
             if(request.cancelled || view==null || fading){request.done.countDown();return;}
-            pendingFade=request;fading=true;fadeStartedAt=SystemClock.uptimeMillis();
+            pendingFade=request;fading=true;blackDrawnAt=-1;fadeStartedAt=SystemClock.uptimeMillis();
             if(immersiveGuard!=null)immersiveGuard.hide();
             view.postInvalidateOnAnimation();
             // A paused/non-drawing view must never block game presentation forever.
@@ -153,21 +158,26 @@ public final class EnhancedUi {
             if(closed || activity==null || activity.isFinishing() || activity.isDestroyed())return;
             activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
             activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            // Match the original DisplayFix/SDL routine on Android 14 too.
+            // SDL still writes these legacy flags. Keep both requested states
+            // consistent; the reported status-bar flash still needs device testing.
+            decor.setSystemUiVisibility(5894);
             if(Build.VERSION.SDK_INT>=30) {
                 WindowInsetsController controller=activity.getWindow().getInsetsController();
                 if(controller!=null) {
                     controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
                     controller.hide(WindowInsets.Type.systemBars());
                 }
-            }else decor.setSystemUiVisibility(5894);
+            }
         }
         public void onWindowFocusChanged(boolean hasFocus){if(hasFocus)hide();}
         public boolean onPreDraw() {
             if(!closed && decor.hasWindowFocus()) {
+                if((decor.getSystemUiVisibility()&5894)!=5894)hide();
                 if(Build.VERSION.SDK_INT>=30) {
                     WindowInsets insets=decor.getRootWindowInsets();
                     if(insets!=null && (insets.isVisible(WindowInsets.Type.statusBars()) || insets.isVisible(WindowInsets.Type.navigationBars())))hide();
-                }else if((decor.getSystemUiVisibility()&6)!=6)hide();
+                }
             }
             return true; // Never suppress or rescale the original game/splash draw.
         }
