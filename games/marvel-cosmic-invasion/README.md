@@ -11,6 +11,14 @@ original APK locally; no game files are uploaded or included in this repository.
 The owner confirmed this Terminal workflow worked perfectly; it is the preferred
 method for future Marvel builds using their own local APK.
 
+An [optional startup and Exit builder](../../experiments/marvel-startup-exit/README.md)
+adds a locally selected PNG and translates normal game-loop completion into
+Android audio cleanup and app closure. The owner validated proper main-menu Exit
+on Retroid Pocket Classic / Android 14 on **2026-10-26**, with no lingering audio
+or black-screen hang. The PNG remains until the developer logos appear; a brief
+Android status-bar appearance during startup remains unresolved. This is a
+separate builder; the baseline patch and Terminal launcher here are unchanged.
+
 Target: Retroid Pocket Classic, Android 14, full-screen 1240×1080 parent. The
 existing 1240×698 SDL SurfaceView layout remains 16:9 internally. A centred
 compositor transform displays it at 1240×930, from y=75 to y=1005, leaving 75

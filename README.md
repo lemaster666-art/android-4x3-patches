@@ -5,6 +5,10 @@ Reproducible, target-verified patches that adapt selected Android game ports to 
 The experimental Marvel Cosmic Invasion device profile is an explicit exception:
 it intentionally stretches the original 16:9 picture into a centred 4:3 area.
 See its [build and installation limitations](games/marvel-cosmic-invasion/README.md).
+Its [optional startup/Exit builder](experiments/marvel-startup-exit/README.md)
+also has owner-reported Retroid Pocket Classic / Android 14 validation for clean
+main-menu Exit with audio stopped and PNG coverage until the developer logos
+(2026-10-26). A brief startup status-bar appearance remains unresolved.
 
 > New here? Start with the [step-by-step APK patching guide](PATCHING_GUIDE.md).
 > Maintainers and contributors can also read the [verification record](VERIFICATION.md)

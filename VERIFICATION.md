@@ -29,7 +29,7 @@ stored in this record.
 | Advent Neon, AM2R | Experimental | Advent Neon was rebuilt clean-to-patched with centered title/controls/warning foregrounds and exact-known GameMaker splash neutralization; signed post-state recognition, adopted-storage installation, and cold launch passed. Latest placement awaits visual confirmation. AM2R retains its prior result. |
 | Rogue Legacy, STALKER: Call of Pripyat Mobile | Experimental | Rogue Legacy's clean reference recognizes the jointly centered options, full 1320x990 map/teleporter target, restored 720-line world-grid normalization, post-scale right-aligned proportional full-height loading gate, top-overscanned pause dimmer, bottom-docked projectile edge marker, top-anchored extended death spotlights, and screen-local touch-overlay suppression. The unrelated rune shop remains at its original Y=360. The rebuilt APK reached signed post-state and was installed on adopted storage. STALKER upgrades settings text to 19/21/24/26 while accepting the earlier pass as input. Rogue Legacy's latest visual confirmation remains pending. |
 | Children of Morta, Death Road to Canada, Dusklight, Grimvalor, Huntdown | Experimental | Proprietary-free target tests and development-output checks pass. Death Road analog-axis, D-pad, and idle captures kept the same selection and showed the same animated highlight, so no input patch was added. Complete visual inspection remains pending. |
-| Marvel Cosmic Invasion | Experimental | User-reported validation on 2026-10-25: the macOS Terminal workflow successfully built the APK from the user's local original; installation on Retroid Pocket Classic / Android 14 succeeded, and centred stretched 4:3 presentation worked correctly in menus and approximately 30 minutes of gameplay. See the detailed scope below. |
+| Marvel Cosmic Invasion | Experimental; optional Exit repair device-validated | User-reported Retroid Pocket Classic / Android 14 validation: local Mac build and 4:3 menus plus approximately 30 minutes of gameplay on 2026-10-25; corrected optional build closes cleanly from Exit with no lingering audio/hang, and PNG persists until developer logos on 2026-10-26. Brief startup status-bar appearance remains unresolved. See the detailed scope below. |
 
 | Mega Man X Regenesis | Experimental | Developer APK 1.00.82 rebuilt with the public command; signed post-state and sparse-index integrity verified. Streamed installation and in-place updates succeeded on adopted storage. Opening sequence, enlarged save-selection screen, and opening in-world dialogue inspected at 1280×960; no script errors after correcting the sparse directory. Transient Vulkan surface-loss messages occurred during transitions, followed by successful rendering; extended stability testing is pending. Options follow-up: inspected all 14 rows at 1280×960 with separated labels, checkboxes, volume bars, language and save-slot values; long English labels remain visible. The title background sprite is disabled in this developer build; settled-menu particles extend outside the old 16:9 frame, so no image crop was applied. All 192 synthetic tests pass locally, including the native rebuild/signing fixture. Full gameplay and translated UI review remain pending. |
 
@@ -67,6 +67,37 @@ does not separately establish sleep/resume, every touch overlay, every scene,
 longer sessions or other devices. The module remains experimental with those
 limits documented. No proprietary APK, extracted game file or signing material
 is included in this record or the repository.
+
+#### Marvel Cosmic Invasion startup and Exit follow-up
+
+On **2026-10-26**, the same owner reported testing the corrected optional local
+build from commit `f7799e29a8346aefa8028cc9dc19c00afa69000f`, delivered through
+[the combined startup/Exit Mac builder](experiments/marvel-startup-exit/README.md).
+The earlier combined build installed successfully as an update and displayed
+the selected PNG at a stable aspect ratio, but failed its readiness/Exit hooks.
+A private diagnostic capture identified an incorrect reflection lookup for the
+public audio-system field; the corrected source and host fixture addressed it.
+
+The corrected revision is now **owner-validated for main-menu Exit** on Retroid
+Pocket Classic / Android 14: the app closes properly, audio stops, and neither a
+black-screen hang nor manual force-close remains. The selected PNG stays on
+screen until the developer logos appear, without the earlier aspect-ratio
+flicker. A brief appearance of the Android status bar during startup remains an
+open presentation issue. Exact fade timing, every logo/audio cue, saved-progress
+checks, repeated relaunch and loading pause/resume were not separately reported.
+
+This validates this port's translation of normal desktop game-loop completion
+into Android audio cleanup and activity/task closure. It does not establish a
+universal Exit patch for other Android ports; each requires an audited completion
+and cleanup path. The accepted Exit implementation and the working 4:3 code were
+unchanged for this documentation update.
+
+Before this device test, the corrected source passed **309 automated tests** and
+a private cloud rebuild passed ZIP integrity, alignment, signing and unchanged
+member checks. The proven display DEX remained identical; **3238 other original
+non-signature entries** remained unchanged. Cloud packaging used synthetic
+artwork, not the owner's PNG. No APK, game asset, diagnostic log or signing key
+is included in this record or uploaded to the repository.
 
 ### Hollow Knight 1.3.0.0 Mono port
 

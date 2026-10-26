@@ -2,29 +2,32 @@
 
 This is a separate, opt-in local builder. It preserves the working
 `games/marvel-cosmic-invasion/` patch and its original one-command Mac launcher.
-The combined APK is **experimental and partially failed its first Retroid test**.
-Compilation, package integrity and authored host tests passed, but they do not
-establish Android runtime callback compatibility.
+**Main-menu Exit is device-validated on the supported port.** On 26 October 2026,
+the owner tested the local build from commit
+`f7799e29a8346aefa8028cc9dc19c00afa69000f` on a Retroid Pocket Classic running
+Android 14 and confirmed that Exit closes the app properly, with no continuing
+audio, black-screen hang or manual force-close required. This is the accepted
+Exit implementation for this build/device; it remains in this separate builder.
 
-Owner-reported device result, 26 October 2026 (Retroid Pocket Classic, Android 14):
-installation as an update succeeded; the selected PNG appeared at a stable size
-without the previous aspect-ratio flicker. The roughly six-second pre-logo black
-gap remained, the artwork disappeared abruptly, and Exit still left a black
-screen with audio running until the owner manually removed the task. The
-readiness handoff and Exit repair are **not device-validated successes**.
-The owner's diagnostic capture confirmed helper startup, followed on all three
-recorded launches by failure to attach the frame/completion hooks. Static metadata
-inspection of the exact supported APK identified the cause: the authored helper
-looked up `AudioManager._studioSystem` as non-public, but the original assembly
-declares it public. The fallback removed the splash immediately, and the missing
-Exiting observer prevented the successful-completion gate from closing the app.
+The selected PNG now stays at its stable 4:3 size until the original developer
+logos appear. **Remaining startup issue:** the Android status bar (time/date UI)
+briefly appears during the splash/startup transition. Its cause is not yet
+established or repaired. The owner did not separately confirm the exact fade
+duration or every logo frame/audio cue. Saved-progress checks, repeated relaunch
+and pause/resume during loading were not separately reported for this revision.
 
-The follow-up source fixes that lookup and names individual guard failures in
-diagnostics. The host audio fixture now matches the original's public field;
-this reproduces the failure before the fix. **The corrected build still requires
-a new device test**: a correct lookup alone does not establish successful fade,
-logo timing, audio shutdown or task removal on Android. No loading timer was
-extended and the working 4:3 patch remains unchanged. Raw device logs stay private.
+This is owner-reported physical-device validation, distinct from host tests and
+cloud packaging checks. It applies to the exact supported APK and device, not
+every Android port. The overall optional builder retains its experimental name
+while the startup issue and broader compatibility checks remain open.
+
+The earlier combined build failed to attach both hooks because the authored
+helper looked up `AudioManager._studioSystem` as non-public, while the original
+assembly declares it public. The corrected lookup and matching host fixture
+reproduce the failure before the fix and pass afterward. The corrected revision
+passed all 309 automated tests and cloud signing, alignment and member-integrity
+checks before this device test. No loading timer was extended and the working
+4:3 patch remains unchanged. Raw device logs stay private.
 
 ## Build on your Mac
 
@@ -122,6 +125,15 @@ A second, authored helper is built from the sources here:
    cleanup is gated behind successful game completion, after save cleanup has
    returned. The existing failure/diagnostic path does not close the activity.
 
+The reusable lesson for desktop-to-Android ports is to connect successful game
+loop completion to Android activity teardown: a desktop-style return from the
+game loop alone may leave the Android window and native audio alive. In this
+port, cleanup waits for both the Exiting event and normal bootstrap return with
+no recorded game error, then stops/releases audio and closes the activity on the
+UI thread. This ordering is now device-validated here. Other ports require their
+own audited completion, save and audio lifecycle; these private field names and
+callbacks are not a universal patch.
+
 `SplashView.java` is an **authored compile-only signature stub**, not copied
 original code. Its `.class` is explicitly excluded from the packaged helper
 DEX; only the original, guarded SplashView is shipped with targeted methods.
@@ -129,9 +141,9 @@ DEX; only the original, guarded SplashView is shipped with targeted methods.
 supplies its real system `libdl.so`. All source here is patch/helper code; no
 original game assemblies, libraries, images or APKs are committed.
 
-Runtime compatibility still requires device confirmation, especially Mono
-embedding, native protection accepting the updated main DEX, resume during
-loading, first-logo/audio timing and the final SDL/activity destruction path.
+The owner's corrected-build test confirms successful startup and the observable
+Exit result on the named device. Resume during loading, exact first-logo/audio
+timing, repeated relaunch and other devices still require separate checks.
 If protection or startup fails, collect diagnostics and return to the existing
 working 4:3 APK. Do not disable protection or replace original game libraries.
 
@@ -176,8 +188,10 @@ unchanged inputs/signing-key file and every original APK member. Exactly
 `classes.dex` plus the baseline `classes2.dex` change; exactly four authored/user
 payload entries are added. The remaining **3238 original non-signature entries**
 must match byte-for-byte, including every original managed/native library and
-logo/video asset. Reported device validation is false until the owner tests this
-new experiment.
+logo/video asset. A newly generated build report keeps `device_tested_this_build`
+false because the builder performs no physical-device test. The subsequent
+owner-reported result for the named revision is recorded above and in
+[the project verification record](../../VERIFICATION.md#marvel-cosmic-invasion-startup-and-exit-follow-up).
 
 Cloud packaging verification uses authored, proprietary-free test artwork,
 because the user's PNG is selected locally on the Mac. It does not claim that
