@@ -213,3 +213,20 @@ def test_java_finish_waits_for_target_activity_destruction(tmp_path):
  result=subprocess.run([str(jdk/'bin/java'),'-cp',str(classes),'com.vocies61.marvelcosmic.LifecycleHarness'],capture_output=True,text=True)
  assert result.returncode==0,result.stdout+result.stderr
  assert 'PASS activity lifecycle' in result.stdout
+
+
+def test_java_startup_fade_immersive_and_pause_recovery(tmp_path):
+ import runpy
+ jdk=os.environ.get('MCI_JDK')
+ if not jdk:pytest.skip('Set MCI_JDK to execute authored startup UI tests')
+ jdk=Path(jdk);src=tmp_path/'src';classes=tmp_path/'classes';classes.mkdir()
+ fixtures=runpy.run_path(str(ROOT/'tests/fixtures/marvel_enhancements/ui_fixtures.py'))['SOURCES']
+ paths=[]
+ for name,data in fixtures.items():
+  p=src/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(data);paths.append(p)
+ result=subprocess.run([str(jdk/'bin/javac'),'-source','8','-target','8','-d',str(classes),*[str(p) for p in paths],str(HERE/'java/com/vocies61/marvelcosmic/EnhancedUi.java')],capture_output=True,text=True)
+ assert result.returncode==0,result.stdout+result.stderr
+ for mode in ['success','paused','detached','legacy']:
+  result=subprocess.run([str(jdk/'bin/java'),'-cp',str(classes),'com.vocies61.marvelcosmic.StartupHarness',mode],capture_output=True,text=True,timeout=10)
+  assert result.returncode==0,result.stdout+result.stderr+f' mode={mode}'
+  assert 'PASS startup '+mode in result.stdout

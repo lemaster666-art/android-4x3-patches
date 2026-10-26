@@ -9,12 +9,19 @@ Android 14 and confirmed that Exit closes the app properly, with no continuing
 audio, black-screen hang or manual force-close required. This is the accepted
 Exit implementation for this build/device; it remains in this separate builder.
 
-The selected PNG now stays at its stable 4:3 size until the original developer
-logos appear. **Remaining startup issue:** the Android status bar (time/date UI)
-briefly appears during the splash/startup transition. Its cause is not yet
-established or repaired. The owner did not separately confirm the exact fade
-duration or every logo frame/audio cue. Saved-progress checks, repeated relaunch
-and pause/resume during loading were not separately reported for this revision.
+In that validated revision the selected PNG stays at its stable 4:3 size until
+the original developer logos appear, but the Android status bar (time/date UI)
+briefly appears during startup. The owner did not separately confirm the exact
+fade duration or every logo frame/audio cue. Saved-progress checks, repeated
+relaunch and pause/resume during loading were not separately reported.
+
+**Current startup-only follow-up needs a new device test.** It adds a 500 ms
+readiness-triggered PNG fade to black and restores immersive mode at focus and
+handoff boundaries. Its bounded startup observers leave SDL's existing listeners
+intact. These address the reported presentation issues without changing the
+accepted Exit helper, native bridge or display DEX. The precise cause of the
+original status-bar appearance remains unconfirmed; SDL can reset full-screen
+flags during startup and its own re-hide callback waits two seconds.
 
 This is owner-reported physical-device validation, distinct from host tests and
 cloud packaging checks. It applies to the exact supported APK and device, not
@@ -69,12 +76,22 @@ size (maximum 4096 in either dimension and 12 megapixels).
   centered 4:3 rectangle: 1240 x 930 with 75-pixel top/bottom borders when its
   full-screen View is 1240 x 1080. It requests immersive mode before drawing.
   It has a 250 ms fade-in, no zoom/gradient/title/port-credit/donation button,
-  and no promotional tap target.
+  and no promotional tap target. Additional window-focus and pre-draw observers
+  restore hidden system bars during startup, including when only the status bar
+  becomes visible. They do not replace SDL's listeners, alter surface geometry
+  or disable Android's normal swipe access to system bars after startup. They
+  are removed two seconds after handoff, or immediately on splash detachment.
 - Splash dismissal is triggered by a matching game-frame callback, replacing
-  the seven-second dismissal timer. It fades out over 180 ms **before** the
-  original graphics manager presents the first drawable LogoScreen frame.
+  the seven-second dismissal timer. The PNG fades to its black backdrop over
+  **500 ms before** the original graphics manager presents the first drawable
+  LogoScreen frame. Canvas redraws drive the fade independently of Android's
+  animation-scale setting; the game is released after the zero-alpha artwork
+  has been drawn. This is a fade to black followed by the original logos, not
+  a crossfade that starts the logos underneath the artwork.
   The game timer is reset after this short wait, preserving subsequent animation
-  progression. No developer-logo assets or logo game code are modified.
+  progression. A non-drawing/paused view recovers after 1000 ms; the game-thread
+  wait is bounded to 1250 ms and reports unsuccessful handoff on recovery.
+  No developer-logo assets or logo game code are modified.
 - After the original bootstrap returns normally and a game Exiting event was
   observed, the helper stops FMOD events, flushes commands and releases its
   captured Studio system. It then finishes/removes the Android activity on the
@@ -180,6 +197,38 @@ same app external-files directory used by `spex-boot.txt`. Retrieve it privately
 
 No game content or diagnostic captures are published by the build scripts.
 
+## Optional per-game toast restriction through ADB
+
+This device setting is separate from the APK build. With the Retroid connected
+over USB, unlocked and authorized for USB debugging, paste this once in your
+Mac Terminal (using the previously installed Downloads/platform-tools):
+
+```bash
+marvel_adb="$HOME/Downloads/platform-tools/adb" &&
+"$marvel_adb" shell cmd appops set com.jayeldragon.marvelcosmic.preview TOAST_WINDOW ignore &&
+"$marvel_adb" shell cmd appops get com.jayeldragon.marvelcosmic.preview TOAST_WINDOW
+```
+
+Look for `TOAST_WINDOW: ignore`, then close Marvel normally and launch it again.
+This targets only this game's toast windows, not the entire device. It changes
+neither the APK nor its saves, and requires no root. **Its effect on the observed
+APKVision toast is not device-verified.** Android 14 can render text toasts in
+SystemUI rather than the game's own window, so that toast may still appear even
+when this operation reports `ignore`. Disabling notification permission also
+does not reliably block a foreground app's toasts.
+
+To remove this override and restore Android's default policy, paste:
+
+```bash
+"$HOME/Downloads/platform-tools/adb" shell cmd appops set com.jayeldragon.marvelcosmic.preview TOAST_WINDOW default
+```
+
+If ADB reports an error, preserve the exact message. Do not treat a rejected
+setting or a remaining toast as a successful suppression. Android 14 source:
+[toast-window app-op enforcement](https://github.com/aosp-mirror/platform_frameworks_base/blob/android-14.0.0_r1/services/core/java/com/android/server/wm/WindowState.java),
+[toast presenter attribution](https://github.com/aosp-mirror/platform_frameworks_base/blob/android-14.0.0_r1/core/java/android/widget/ToastPresenter.java)
+and [foreground toast policy](https://github.com/aosp-mirror/platform_frameworks_base/blob/android-14.0.0_r1/services/core/java/com/android/server/notification/NotificationManagerService.java).
+
 ## Verification and developer checks
 
 Every build verifies the supported original's hash, archive CRCs and signature,
@@ -203,6 +252,17 @@ execution with dependency doubles (successful Exit, failed startup, failed
 handoff), JNI ABI checks against JDK headers, JNI/Mono loader argument/error
 execution with authored doubles, and Java destruction/exit ordering. These
 host tests cannot establish Android runtime behavior.
+
+The startup-only follow-up passed **310 automated tests** and a fresh private
+rebuild/sign/alignment/integrity check. An executable Java UI harness checks
+monotonic 500 ms alpha reduction, the black endpoint before game release, a
+fully visible PNG during loading, unchanged complete-source 4:3 bounds,
+status-bar-only and focus recovery, preservation of existing observers,
+pre-API-30 behavior, listener cleanup and safe paused/detached recovery. Against
+the corrected Exit cloud reference, only `classes3.dex` and signature metadata
+changed: the managed helper, native bridge, `classes.dex` and baseline
+`classes2.dex` remained byte-for-byte identical. This is host/package evidence;
+the new fade and status-bar behavior still need Retroid testing.
 
 With a private .NET SDK and JDK prepared, run the complete tests with:
 

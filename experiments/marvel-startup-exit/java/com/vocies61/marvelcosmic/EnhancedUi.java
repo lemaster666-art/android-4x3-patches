@@ -15,6 +15,8 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewTreeObserver;
+import android.view.WindowManager;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CountDownLatch;
@@ -29,19 +31,22 @@ public final class EnhancedUi {
     private static boolean fading;
     private static boolean failed;
     private static Runnable watchdog;
+    private static Runnable fadeRecovery;
+    private static long fadeStartedAt;
+    private static FadeRequest pendingFade;
+    private static ImmersiveGuard immersiveGuard;
+    private static final long FADE_OUT_MS=500;
+    private static final long FADE_RECOVERY_MS=1000;
+    private static final long HANDOFF_WAIT_MS=1250;
     private static final Paint PAINT=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
     private static final RectF DEST=new RectF();
 
     public static void attach(final SplashView view) {
         current=new WeakReference<>(view); fading=false; attachedAt=SystemClock.uptimeMillis();
         view.setBackgroundColor(Color.BLACK); view.setAlpha(1f);
-        if(view.getContext() instanceof Activity) {
-            Activity owner=(Activity)view.getContext();
-            if(Build.VERSION.SDK_INT>=30) {
-                WindowInsetsController controller=owner.getWindow().getInsetsController();
-                if(controller!=null)controller.hide(WindowInsets.Type.systemBars());
-            }else owner.getWindow().getDecorView().setSystemUiVisibility(5894);
-        }
+        if(immersiveGuard!=null)immersiveGuard.close();
+        if(view.getContext() instanceof Activity)
+            immersiveGuard=new ImmersiveGuard((Activity)view.getContext());
         if(failed) { MAIN.post(new Runnable(){public void run(){finish(view);}}); return; }
         try(InputStream input=view.getContext().getAssets().open("android4x3/splash.png")) {
             BitmapFactory.Options options=new BitmapFactory.Options();options.inPreferredConfig=Bitmap.Config.ARGB_8888;
@@ -64,27 +69,37 @@ public final class EnhancedUi {
         int unit=Math.min(view.getWidth()/4,view.getHeight()/3);
         int w=unit*4,h=unit*3;float left=(view.getWidth()-w)/2f,top=(view.getHeight()-h)/2f;
         DEST.set(left,top,left+w,top+h);
-        float fade=Math.min(1f,(SystemClock.uptimeMillis()-attachedAt)/250f);
+        long now=SystemClock.uptimeMillis();
+        float fade=Math.min(1f,(now-attachedAt)/250f);
+        float out=fading?Math.min(1f,(now-fadeStartedAt)/(float)FADE_OUT_MS):0f;
+        fade*=1f-out;
         PAINT.setAlpha(Math.round(255f*fade));
         canvas.drawBitmap(artwork,null,DEST,PAINT); // Whole source rectangle; no crop or zoom.
-        if(fade<1f)view.postInvalidateOnAnimation();
+        if(fading && out>=1f) {
+            // Release the game only after the zero-alpha artwork/black backdrop
+            // has been drawn. This fade does not depend on Android animator scales.
+            MAIN.post(new Runnable(){public void run(){finish(view,true);}});
+        }else if(fading || fade<1f)view.postInvalidateOnAnimation();
     }
     public static boolean handoff(final Activity activity) {
         // Called on the game thread BEFORE its original graphics manager presents the first logo frame.
         if(Looper.myLooper()==Looper.getMainLooper()) { failOpen();return false; }
-        final CountDownLatch done=new CountDownLatch(1);
+        final FadeRequest request=new FadeRequest();
         activity.runOnUiThread(new Runnable(){public void run(){
             final SplashView view=current.get();
-            if(view==null || fading){done.countDown();return;}
-            fading=true;
-            view.animate().cancel();
-            view.animate().alpha(0f).setDuration(180).withEndAction(new Runnable(){public void run(){finish(view);done.countDown();}}).start();
-            // A paused/cancelled animator must never block the game indefinitely.
-            MAIN.postDelayed(new Runnable(){public void run(){if(done.getCount()!=0){finish(view);done.countDown();}}},500);
+            if(request.cancelled || view==null || fading){request.done.countDown();return;}
+            pendingFade=request;fading=true;fadeStartedAt=SystemClock.uptimeMillis();
+            if(immersiveGuard!=null)immersiveGuard.hide();
+            view.postInvalidateOnAnimation();
+            // A paused/non-drawing view must never block game presentation forever.
+            fadeRecovery=new Runnable(){public void run(){
+                if(pendingFade==request){Log.e("Android4x3Marvel","Fade redraw timeout; revealing original game");finish(view);}
+            }};MAIN.postDelayed(fadeRecovery,FADE_RECOVERY_MS);
         }});
         try {
-            if(done.await(750,TimeUnit.MILLISECONDS))return true;
+            if(request.done.await(HANDOFF_WAIT_MS,TimeUnit.MILLISECONDS))return request.completed;
         } catch(InterruptedException error){Thread.currentThread().interrupt();}
+        request.cancelled=true;
         activity.runOnUiThread(new Runnable(){public void run(){failOpen();}});
         return false;
     }
@@ -93,16 +108,82 @@ public final class EnhancedUi {
         failed=true;SplashView view=current.get();if(view!=null)finish(view);
     }
     public static void detached(SplashView view) {
-        if(current.get()==view){current.clear();clearArtwork();}
+        if(current.get()==view){
+            current.clear();clearArtwork();releaseFade(false);
+            if(immersiveGuard!=null){immersiveGuard.close();immersiveGuard=null;}
+        }
     }
     private static void clearArtwork() {
         if(watchdog!=null){MAIN.removeCallbacks(watchdog);watchdog=null;}
+        if(fadeRecovery!=null){MAIN.removeCallbacks(fadeRecovery);fadeRecovery=null;}
         if(artwork!=null){artwork.recycle();artwork=null;}
     }
-    private static void finish(SplashView view) {
+    private static void finish(SplashView view) {finish(view,false);}
+    private static void finish(SplashView view,boolean completed) {
         if(current.get()!=view)return;
-        current.clear();view.animate().cancel();view.finishEnhancedSplash();
-        clearArtwork();
+        current.clear();
+        try {
+            if(immersiveGuard!=null)immersiveGuard.afterHandoff();
+            view.finishEnhancedSplash();
+        }finally{clearArtwork();releaseFade(completed);}
+    }
+    private static void releaseFade(boolean completed) {
+        FadeRequest request=pendingFade;pendingFade=null;
+        if(request!=null){request.completed=completed;request.done.countDown();}
+    }
+    private static final class FadeRequest {
+        final CountDownLatch done=new CountDownLatch(1);
+        volatile boolean completed,cancelled;
+    }
+    /** Additional observers preserve SDL's existing Activity and insets listeners. */
+    private static final class ImmersiveGuard implements ViewTreeObserver.OnWindowFocusChangeListener,ViewTreeObserver.OnPreDrawListener {
+        final WeakReference<Activity> owner;
+        final View decor;
+        final ViewTreeObserver observer;
+        boolean closed;
+        final Runnable closeLater=new Runnable(){public void run(){close();}};
+        ImmersiveGuard(Activity activity) {
+            owner=new WeakReference<>(activity);decor=activity.getWindow().getDecorView();
+            observer=decor.getViewTreeObserver();
+            observer.addOnWindowFocusChangeListener(this);observer.addOnPreDrawListener(this);
+            hide();
+        }
+        void hide() {
+            Activity activity=owner.get();
+            if(closed || activity==null || activity.isFinishing() || activity.isDestroyed())return;
+            activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+            activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            if(Build.VERSION.SDK_INT>=30) {
+                WindowInsetsController controller=activity.getWindow().getInsetsController();
+                if(controller!=null) {
+                    controller.setSystemBarsBehavior(WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                    controller.hide(WindowInsets.Type.systemBars());
+                }
+            }else decor.setSystemUiVisibility(5894);
+        }
+        public void onWindowFocusChanged(boolean hasFocus){if(hasFocus)hide();}
+        public boolean onPreDraw() {
+            if(!closed && decor.hasWindowFocus()) {
+                if(Build.VERSION.SDK_INT>=30) {
+                    WindowInsets insets=decor.getRootWindowInsets();
+                    if(insets!=null && (insets.isVisible(WindowInsets.Type.statusBars()) || insets.isVisible(WindowInsets.Type.navigationBars())))hide();
+                }else if((decor.getSystemUiVisibility()&6)!=6)hide();
+            }
+            return true; // Never suppress or rescale the original game/splash draw.
+        }
+        void afterHandoff() {
+            hide();
+            // Bounded startup observation also covers SDL's final full-screen
+            // request. No permanent listener or change to gameplay UI behavior.
+            MAIN.removeCallbacks(closeLater);MAIN.postDelayed(closeLater,2000);
+        }
+        void close() {
+            if(closed)return;closed=true;MAIN.removeCallbacks(closeLater);
+            ViewTreeObserver tree=observer.isAlive()?observer:decor.getViewTreeObserver();
+            if(tree.isAlive()){tree.removeOnWindowFocusChangeListener(this);tree.removeOnPreDrawListener(this);}
+            owner.clear();
+            if(immersiveGuard==this)immersiveGuard=null;
+        }
     }
     private EnhancedUi() {}
 }
