@@ -4,6 +4,12 @@ Reference: [`6cbe39a7f5ad14911f1d2dc3f4a82ee35cb7c82c`](https://github.com/lemas
 Implementation: [experiments/marvel-startup-exit](../../experiments/marvel-startup-exit/README.md).
 Preservation: [source-pinned repair profile](marvel-cosmic-invasion.json).
 
+The profile retains the 28 historical reference hashes separately from current
+source pins. The authorized [optional loading-animation candidate](../../experiments/marvel-startup-exit/LOADING_ANIMATION.md)
+extends the existing drawing path without changing the validated guard, handoff
+or startup timings. Its appearance/disappearance is **awaiting handheld validation**;
+the hardware evidence below applies to the preserved reference, not a new output.
+
 ## Hardware evidence and limits
 
 Device: **Retroid Pocket Classic, Android 14, 1240×1080**. Supported APK:

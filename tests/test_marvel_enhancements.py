@@ -259,10 +259,11 @@ def test_java_startup_fade_original_window_policy_and_pause_recovery(tmp_path):
   p=src/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(data);paths.append(p)
  result=subprocess.run([str(jdk/'bin/javac'),'-source','8','-target','8','-d',str(classes),*[str(p) for p in paths],str(HERE/'java/com/vocies61/marvelcosmic/EnhancedUi.java')],capture_output=True,text=True)
  assert result.returncode==0,result.stdout+result.stderr
- for mode in ['success','paused','detached','legacy','late-black','failed']:
-  log=tmp_path/mode;log.mkdir()
-  result=subprocess.run([str(jdk/'bin/java'),'-Dmarvel.ui.logdir='+str(log),'-cp',str(classes),'com.vocies61.marvelcosmic.StartupHarness',mode],capture_output=True,text=True,timeout=10)
-  assert result.returncode==0,result.stdout+result.stderr+f' mode={mode}'
-  assert 'PASS startup '+mode in result.stdout
-  text=(log/'android4x3-enhancements.txt').read_text()
-  assert text.count('startup windowed-style request kept Android full-screen while PNG active')==1
+ for animated in [False,True]:
+  for mode in ['success','paused','detached','legacy','late-black','failed']:
+   log=tmp_path/(mode+('-animated' if animated else ''));log.mkdir()
+   result=subprocess.run([str(jdk/'bin/java'),'-Dmarvel.ui.animation='+str(animated).lower(),'-Dmarvel.ui.logdir='+str(log),'-cp',str(classes),'com.vocies61.marvelcosmic.StartupHarness',mode],capture_output=True,text=True,timeout=10)
+   assert result.returncode==0,result.stdout+result.stderr+f' mode={mode} animated={animated}'
+   assert 'PASS startup '+mode in result.stdout
+   text=(log/'android4x3-enhancements.txt').read_text()
+   assert text.count('startup windowed-style request kept Android full-screen while PNG active')==1

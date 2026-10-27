@@ -70,6 +70,26 @@ is included in this record or the repository.
 
 #### Marvel Cosmic Invasion startup and Exit follow-up
 
+**Optional loading-animation candidate — 2026-10-27:** the existing splash Canvas
+path now supports the owner's private purple-neon X-Men sprite-sheet kit.
+The animation is **awaiting handheld validation**. The 40 frames use monotonic
+50 ms steps, mapped through the original 4:3 content bounds. The icon and halo
+are omitted from the first draw after the existing fade-start transition; they
+do not change any startup timing, guard lifetime or logo handoff. Missing assets
+leave the plain PNG operational. The kit/artwork are local inputs, not repository
+assets. See the [candidate report](experiments/marvel-startup-exit/LOADING_ANIMATION.md).
+
+The private candidate passed signing, alignment, ZIP CRC, package/version and
+payload/member comparisons: 3238 unrelated original non-signature entries are
+unchanged. Against the prior successful cloud build with the same synthetic
+splash, only the authored UI DEX changes and the sprite sheet is added; the main
+patched DEX, 4:3 DEX, managed Exit helper and native bridge remain byte-identical.
+The cloud test uses synthetic background artwork and the existing cloud key,
+not the owner's Mac artwork/key. The Mac builder retains the owner's existing
+key and local original/PNG/kit inputs. Host checks are not a new hardware result.
+The final lower-placement candidate's full suite passed **374 tests**, including
+required native checks, with no skips (43.72 seconds).
+
 **Latest hardware result — 2026-10-27:** the owner confirms that
 [`6cbe39a7f5ad14911f1d2dc3f4a82ee35cb7c82c`](https://github.com/lemaster666-art/android-4x3-patches/commit/6cbe39a7f5ad14911f1d2dc3f4a82ee35cb7c82c)
 eliminates the brief Android status-bar flash during the custom PNG on Retroid

@@ -10,12 +10,12 @@
   "source_checksums": {
     "experiments/marvel-startup-exit/Enhancements.cs": "1146a6d197f0503fb759288f79cfff16e134aa6c2669f82881b72d6928123dd0",
     "experiments/marvel-startup-exit/bridge.c": "016b312ae3138e5dd7f2a89039c6cbd78966f79a00deee7ce542f3d06ef579b2",
-    "experiments/marvel-startup-exit/build-local.py": "a3de619e76ff20780a0217054c9988218f8adba25478fc1f8ec96b3e60f0ac5a",
+    "experiments/marvel-startup-exit/build-local.py": "06e828557c20e23c97647b1c05836e2f07bc498c4c228629dc20eb4418edc1b6",
     "experiments/marvel-startup-exit/build-local.sh": "cb82dff8e691d05a40d44757d68fe21145ccf82505fffcbaf891ff1162bc1a79",
     "experiments/marvel-startup-exit/capture-status-bar.sh": "b08198525513cdd46b821f4676fdec990902f691d887e233b8fa09c89c83ee2b",
     "experiments/marvel-startup-exit/dl_stub.c": "5372079f6f1498753b4e1b657107b04a8848973fef328847dc2c1cc857d9242c",
     "experiments/marvel-startup-exit/java/com/vocies61/marvelcosmic/EnhancedBridge.java": "1563472f02ca483ccc1e66ee43f497836f482a0afaf7211076095df67410ac56",
-    "experiments/marvel-startup-exit/java/com/vocies61/marvelcosmic/EnhancedUi.java": "0da4871e2bb72511fe6ff9fd47bbb7a6db2b2eb28dc2a65a89df9f52267fd989",
+    "experiments/marvel-startup-exit/java/com/vocies61/marvelcosmic/EnhancedUi.java": "fcb57b2a5ebb032d3fa28a92cc39fce8d22a238224fe9c3aee3b9855dc42c435",
     "experiments/marvel-startup-exit/java/com/vocies61/marvelcosmic/SplashView.java": "903870a46be18f5722fe04a470ec278deb6182e7e4a38998d8cab191a74506ff",
     "experiments/marvel-startup-exit/tools.json": "b4430122aa96276ff56e5967a3fdf6ccdcc1848bf582e0ddfacad8dcb8195002",
     "games/marvel-cosmic-invasion/StretchWatcher.smali": "ba73be3b3605fb06392591746b20b6462a386585c23b1e0b480d73fa7f28e3bf",
@@ -33,9 +33,10 @@
     "tests/fixtures/marvel_enhancements/Harness.cs": "b2437af412ad27f9212accb29f9e8b8cfb6e3a8007d1ffba2a6119bcc58ee7f2",
     "tests/fixtures/marvel_enhancements/jni_harness.c": "f3fd13bdabcfdd42cc523a7fc45ae31495bdecef0cd1b5a2f191739cf879af66",
     "tests/fixtures/marvel_enhancements/native_callbacks.c": "4974b762a6e1e0ead89b3ca31f522b33e6c6127b93afccaee830df45214c6e8c",
-    "tests/fixtures/marvel_enhancements/ui_fixtures.py": "651492bfe384ccff95f7c97e51b988d0a7387c2d4ed97b1073b7712fdfac5cb1",
-    "tests/test_marvel_enhancements.py": "f40e0d674294bdc577df669138c2d306610b8698ce068b97732de162dd110d2f",
-    "tests/test_marvel_status_capture.py": "0e63bb42f5f9379c6e4b4292d182735d9ab7890521f225fed124b5d7d835f87f"
+    "tests/fixtures/marvel_enhancements/ui_fixtures.py": "57680c037acc2bd661959c0dd94114bbb3b0a9e881a5fa0f5dca27ce26aa27dd",
+    "tests/test_marvel_enhancements.py": "037130e1e79cde0a184b96f20fe75818c907e6f1abd2ee0f7be63dbbddf773ae",
+    "tests/test_marvel_status_capture.py": "0e63bb42f5f9379c6e4b4292d182735d9ab7890521f225fed124b5d7d835f87f",
+    "tests/test_marvel_loading_animation.py": "ef1db416c1e8c322baea778bd3344a702f1f0508896213bb7f073ae14619e091"
   },
   "signing_policy": "reuse-existing",
   "artwork_required": true,
@@ -73,5 +74,58 @@
       "Original system launch icon and distributor toast remain separate",
       "Host build reports remain device_tested_this_build=false until that specific output is tested"
     ]
+  },
+  "validated_source_checksums": {
+    "experiments/marvel-startup-exit/Enhancements.cs": "1146a6d197f0503fb759288f79cfff16e134aa6c2669f82881b72d6928123dd0",
+    "experiments/marvel-startup-exit/bridge.c": "016b312ae3138e5dd7f2a89039c6cbd78966f79a00deee7ce542f3d06ef579b2",
+    "experiments/marvel-startup-exit/build-local.py": "a3de619e76ff20780a0217054c9988218f8adba25478fc1f8ec96b3e60f0ac5a",
+    "experiments/marvel-startup-exit/build-local.sh": "cb82dff8e691d05a40d44757d68fe21145ccf82505fffcbaf891ff1162bc1a79",
+    "experiments/marvel-startup-exit/capture-status-bar.sh": "b08198525513cdd46b821f4676fdec990902f691d887e233b8fa09c89c83ee2b",
+    "experiments/marvel-startup-exit/dl_stub.c": "5372079f6f1498753b4e1b657107b04a8848973fef328847dc2c1cc857d9242c",
+    "experiments/marvel-startup-exit/java/com/vocies61/marvelcosmic/EnhancedBridge.java": "1563472f02ca483ccc1e66ee43f497836f482a0afaf7211076095df67410ac56",
+    "experiments/marvel-startup-exit/java/com/vocies61/marvelcosmic/EnhancedUi.java": "0da4871e2bb72511fe6ff9fd47bbb7a6db2b2eb28dc2a65a89df9f52267fd989",
+    "experiments/marvel-startup-exit/java/com/vocies61/marvelcosmic/SplashView.java": "903870a46be18f5722fe04a470ec278deb6182e7e4a38998d8cab191a74506ff",
+    "experiments/marvel-startup-exit/tools.json": "b4430122aa96276ff56e5967a3fdf6ccdcc1848bf582e0ddfacad8dcb8195002",
+    "games/marvel-cosmic-invasion/StretchWatcher.smali": "ba73be3b3605fb06392591746b20b6462a386585c23b1e0b480d73fa7f28e3bf",
+    "games/marvel-cosmic-invasion/build-local.sh": "1c9070c39d2cbdd5c529becf33b2ad77b99a007db8a3d3bbc112025a785f8754",
+    "games/marvel-cosmic-invasion/build.py": "bf647a2370a9a1cbdc8d66fa38d5214ee7c5d311328a0eb53a8874640ca2d7c8",
+    "games/marvel-cosmic-invasion/config.json": "cba0902d2901a2f37939cb26ea534d80ff715ac39775ca63d42f355d2ab9175e",
+    "games/marvel-cosmic-invasion/local_build.py": "8ef2505353a2c1cbccff32946223a1463986bbc8675a043353f11fac11572ba1",
+    "games/marvel-cosmic-invasion/patch_impl.py": "2720501889e260fc2b165a61439407919ea19d6799d86cb410258c30716e2895",
+    "games/marvel-cosmic-invasion/transform.smali": "8386f60dcc0d7c2fcf9bd55a95be2edc26c4a4575bd6f98fd802b140b18e1202",
+    "src/android4x3/apk.py": "33aeeb05d43cd3f878f5617d8fbd08341bdcb0d7b70cc33a5557ab80ffed5aa9",
+    "src/android4x3/errors.py": "c7f70605972a4572ff2b785ea113a4e294eca893a43c6d0af3cafc4d4424e753",
+    "src/android4x3/manifest.py": "4cadd64d6163f03fe8f6939f6ecceeb2a7945cd9686e2e10c9720974b95c5a59",
+    "src/android4x3/signing.py": "797b77bc5ef56a9f725d5505a9353d84918bb33662b56b937ecb251e7c1f3f1d",
+    "tests/fixtures/marvel_enhancements/FakeApis.cs": "e59c4100ebec5e9a96d215fd30e8290749b961a51bee340d7cc5c9b3efe6a9a8",
+    "tests/fixtures/marvel_enhancements/Harness.cs": "b2437af412ad27f9212accb29f9e8b8cfb6e3a8007d1ffba2a6119bcc58ee7f2",
+    "tests/fixtures/marvel_enhancements/jni_harness.c": "f3fd13bdabcfdd42cc523a7fc45ae31495bdecef0cd1b5a2f191739cf879af66",
+    "tests/fixtures/marvel_enhancements/native_callbacks.c": "4974b762a6e1e0ead89b3ca31f522b33e6c6127b93afccaee830df45214c6e8c",
+    "tests/fixtures/marvel_enhancements/ui_fixtures.py": "651492bfe384ccff95f7c97e51b988d0a7387c2d4ed97b1073b7712fdfac5cb1",
+    "tests/test_marvel_enhancements.py": "f40e0d674294bdc577df669138c2d306610b8698ce068b97732de162dd110d2f",
+    "tests/test_marvel_status_capture.py": "0e63bb42f5f9379c6e4b4292d182735d9ab7890521f225fed124b5d7d835f87f"
+  },
+  "optional_additions": {
+    "assets/android4x3/xmen-neon-sheet.png": "3b92064ab579b3cd746718e3409f2b669f92c19cdbc7b4007b37a2f363d4139a"
+  },
+  "loading_animation": {
+    "status": "awaiting handheld validation",
+    "opt_in": "--loading-animation (Mac picker) or --loading-kit PATH",
+    "artwork_in_repository": false,
+    "startup_timing_changed": false,
+    "hardware_validation_scope": "The hardware_validation record applies to the preserved 6cbe reference, not to this new animation candidate.",
+    "placement_reference": {
+      "display": [
+        1280,
+        960
+      ],
+      "frame": [
+        1104,
+        800,
+        160,
+        160
+      ],
+      "reason": "Owner second placement preview: 16px lower than original kit coordinates"
+    }
   }
 }

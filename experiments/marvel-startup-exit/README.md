@@ -1,5 +1,10 @@
 # Marvel Cosmic Invasion: combined startup and Exit experiment
 
+**New optional loading-animation candidate:** see [LOADING_ANIMATION.md](LOADING_ANIMATION.md)
+for the private kit picker (`--loading-animation`), unchanged startup timings and
+handheld acceptance checks. This opt-in animation is **awaiting handheld validation**;
+the successful status-bar repair below retains its validated reference status.
+
 This is a separate, opt-in local builder. It preserves the working
 `games/marvel-cosmic-invasion/` patch and its original one-command Mac launcher.
 
@@ -10,7 +15,8 @@ The splash-scoped window-style guard is now a validated repair alongside the
 custom PNG, developer-logo handoff/timing, 4:3 presentation and Android Exit/audio
 cleanup. These are owner-reported hardware successes for this supported build,
 not host-only claims or universal compatibility. The working source, tests and
-Mac launcher are preserved by the [repair reference profile](../../workshop/repairs/marvel-cosmic-invasion.json).
+Mac launcher are tracked by the [repair reference profile](../../workshop/repairs/marvel-cosmic-invasion.json),
+which retains the validated hashes separately from authorized candidate changes.
 Future sessions can use `STARTUP&EXIT ISSUE`; see the
 [reusable technical reference](../../workshop/repairs/MARVEL_REFERENCE.md).
 

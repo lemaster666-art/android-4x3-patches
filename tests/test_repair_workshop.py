@@ -112,7 +112,8 @@ def test_preserved_marvel_reference_and_generated_command():
     assert p['validated_reference']==r.REFERENCE
     assert p['hardware_validation']['status']=='hardware validated: status-bar flash eliminated'
     assert p['artwork_required'] and p['includes_aspect_patch']
-    assert len(p['source_checksums'])==28
+    assert len(p['source_checksums'])==29
+    assert len(p['validated_source_checksums'])==28
     assert 'tests/test_marvel_enhancements.py' in p['source_checksums']
     command=r.repair_mac_command(ROOT,'marvel-cosmic-invasion',r.REFERENCE,'lemaster666-art/android-4x3-patches',workflow='startup-exit')
     assert 'experiments/marvel-startup-exit/build-local.sh' in command

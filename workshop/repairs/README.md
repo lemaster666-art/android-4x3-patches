@@ -96,11 +96,16 @@ Each must support the original-APK picker, optional PNG picker, new Downloads
 APK/report and Mac CPU architectures where its tools permit. State precise
 OS/CPU limitations. Never silently bundle extra changes in an Exit-only profile.
 
-Marvel delegates to its **unchanged combined launcher**, including 4:3 + PNG/
+Marvel delegates to its combined launcher, including 4:3 + PNG/
 startup + Exit and requiring its existing signer. It is not an Exit-only adapter:
 `--workflow exit` against that profile fails rather than applying extra changes.
-The profile pins 28 preserved source/test files. An unexplained mismatch stops
-delivery; do not automatically repin a working implementation.
+The profile retains the 28 validated reference hashes in `validated_source_checksums`
+and pins 29 current source/test files. The optional purple-neon loading animation
+is an authorized candidate, **awaiting handheld validation**; its private kit is
+selected only with `--loading-animation` / `--loading-kit`. It leaves the existing
+handoff, timing and fullscreen guard intact. See its
+[candidate report](../../experiments/marvel-startup-exit/LOADING_ANIMATION.md).
+An unexplained mismatch stops delivery; do not automatically repin a working implementation.
 
 ```bash
 python tools/repair-workshop.py route '4:3 time + STARTUP&EXIT ISSUE'

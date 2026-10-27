@@ -29,6 +29,9 @@ ORIGINAL_SHA='d0c9587575f5bba17a5ac2f5ea3e56700b362f658aaaff84ae11c9b67eae18c9'
 DEX_SHA='a9675bcd7552febb03e5bcca74a4c222faebaeae2d91ef86f7ddf5ac59d78eda'
 BASELINE_DEX_SHA='0accefb0c85def38839d3e3015d130967a21b7545869f6cefcd7efc23bcc2fe1'
 PNG_ENTRY='assets/android4x3/splash.png'
+ICON_ENTRY='assets/android4x3/xmen-neon-sheet.png'
+ICON_KIT_MEMBER='xmen-purple-loading/xmen-neon-sheet.png'
+ICON_SHA='3b92064ab579b3cd746718e3409f2b669f92c19cdbc7b4007b37a2f363d4139a'
 DLL_ENTRY='assets/android4x3/marvel-enhancements.bin'
 SO_ENTRY='lib/arm64-v8a/libandroid4x3_marvel.so'
 ADDITIONS={'classes3.dex',PNG_ENTRY,DLL_ENTRY,SO_ENTRY}
@@ -105,6 +108,19 @@ def validate_png(path:Path)->dict:
   if kind==b'IEND':break
  if not types or types[-1]!=b'IEND' or b'IDAT' not in types or pos!=len(data):raise PatchError('Incomplete PNG or trailing data')
  return {'width':width,'height':height,'bytes':size,'sha256':hashlib.sha256(data).hexdigest()}
+
+def read_loading_sheet(kit:Path)->bytes:
+ # Read only the pinned production sheet; never extract or execute kit scripts.
+ if kit.stat().st_size>16*1024*1024:raise PatchError('Loading kit must be at most 16 MiB')
+ try:
+  with zipfile.ZipFile(kit) as z:
+   entries=[i for i in z.infolist() if i.filename==ICON_KIT_MEMBER]
+   if len(entries)!=1 or entries[0].file_size>1024*1024:raise PatchError('Loading kit must contain one bounded production sheet')
+   data=z.read(entries[0])
+ except PatchError:raise
+ except (zipfile.BadZipFile,RuntimeError) as error:raise PatchError('Invalid loading kit ZIP') from error
+ if hashlib.sha256(data).hexdigest()!=ICON_SHA:raise PatchError('Loading sheet checksum mismatch; use the approved purple-neon kit')
+ return data
 
 def transform_splash(source:str)->str:
  module=baseline();blocks=module.method_blocks(source)
@@ -235,9 +251,11 @@ def signature(apk:Path)->str:
  return match[1]
 
 def verify_members(original:Path,output:Path,payloads:dict[str,Path])->dict:
+ additions=ADDITIONS|({ICON_ENTRY} if ICON_ENTRY in payloads else set())
+ if set(payloads)!=additions|CHANGES:raise PatchError('Unexpected or incomplete authored payload set')
  with zipfile.ZipFile(original) as a,zipfile.ZipFile(output) as b:
   old={n for n in a.namelist() if not _is_v1_signature(n)};new={n for n in b.namelist() if not _is_v1_signature(n)}
-  if old-new or new-old!=ADDITIONS:raise PatchError('Unexpected removed/added APK members')
+  if old-new or new-old!=additions:raise PatchError('Unexpected removed/added APK members')
   changed=[];unchanged=0
   for n in old:
    different=hashlib.sha256(a.read(n)).digest()!=hashlib.sha256(b.read(n)).digest()
@@ -249,11 +267,15 @@ def verify_members(original:Path,output:Path,payloads:dict[str,Path])->dict:
   for n,p in payloads.items():
    if hashlib.sha256(b.read(n)).hexdigest()!=sha(p):raise PatchError('Packaged payload mismatch: '+n)
   if hashlib.sha256(b.read('classes2.dex')).hexdigest()!=BASELINE_DEX_SHA:raise PatchError('Working 4:3 transformation changed')
- return {'changed_members':sorted(changed),'added_members':sorted(ADDITIONS),'unchanged_original_members':unchanged}
+ return {'changed_members':sorted(changed),'added_members':sorted(additions),'unchanged_original_members':unchanged}
 
-def build(original:Path,artwork:Path,output:Path,tools:dict)->dict:
+def build(original:Path,artwork:Path,output:Path,tools:dict,loading_kit:Path|None=None)->dict:
  original,artwork,output=map(private,[original,artwork,output]);report_path=output.with_suffix('.json')
  if len({original,artwork,output,report_path})!=4 or output.exists() or report_path.exists():raise PatchError('Inputs/outputs must be distinct; output and report must not already exist')
+ if loading_kit is not None:
+  loading_kit=private(loading_kit)
+  if loading_kit in {original,artwork,output,report_path}:raise PatchError('Loading kit must be a separate private input')
+  kit_sha=sha(loading_kit);sheet=read_loading_sheet(loading_kit)
  if sha(original)!=ORIGINAL_SHA:raise PatchError('Original APK checksum mismatch; unsupported build')
  art=validate_png(artwork);art_sha=sha(artwork);verify_zip(original,full=True,allow_signatures=True);original_signer=signature(original)
  # Never silently replace the signing identity used by the working local build.
@@ -268,10 +290,13 @@ def build(original:Path,artwork:Path,output:Path,tools:dict)->dict:
    payloads['classes.dex']=patch_classes(z.read('classes.dex'),work)
    display=work/'classes2.dex';display.write_bytes(baseline().patch_dex(z.read('classes2.dex')));payloads['classes2.dex']=display
   payloads[PNG_ENTRY]=artwork
+  additions=ADDITIONS.copy()
+  if loading_kit is not None:
+   icon=work/'xmen-neon-sheet.png';icon.write_bytes(sheet);payloads[ICON_ENTRY]=icon;additions.add(ICON_ENTRY)
   unsigned,aligned,signed=[work/n for n in ['unsigned.apk','aligned.apk','signed.apk']]
   _stdlib_core_repack(original,unsigned,{n:p for n,p in payloads.items() if n in CHANGES})
   with zipfile.ZipFile(unsigned,'a',allowZip64=False) as z:
-   for n in sorted(ADDITIONS):
+   for n in sorted(additions):
     entry=zipfile.ZipInfo(n,(1980,1,1,0,0,0));entry.external_attr=0o600<<16
     z.writestr(entry,payloads[n].read_bytes(),compress_type=zipfile.ZIP_STORED)
   align_apk(unsigned,aligned);sign_apk(aligned,signed);verify_alignment(signed);verify_zip(signed,full=True,allow_signatures=True)
@@ -279,7 +304,11 @@ def build(original:Path,artwork:Path,output:Path,tools:dict)->dict:
   if inspect_apk(original)!=inspect_apk(signed):raise PatchError('Package identity/version changed')
   members=verify_members(original,signed,payloads)
   if sha(original)!=ORIGINAL_SHA or sha(artwork)!=art_sha or sha(state/'signing.p12')!=key_before:raise PatchError('Original input/artwork/signing identity changed during build')
+  if loading_kit is not None and sha(loading_kit)!=kit_sha:raise PatchError('Loading kit changed during build')
   info={'experimental':True,'device_tested_this_build':False,'output':str(output),'sha256':sha(signed),'bytes':signed.stat().st_size,'original_sha256':ORIGINAL_SHA,'original_unchanged':True,'artwork':art,'original_signer_sha256':original_signer,'signer_sha256':signer,'existing_local_key_reused':True,'baseline_display_dex_sha256':BASELINE_DEX_SHA,'target':{'display':[1240,1080],'picture':[1240,930],'top_bottom_borders':[75,75]},**members}
+  info['loading_animation']={'enabled':loading_kit is not None,'status':'awaiting handheld validation' if loading_kit is not None else 'not included',
+   'sheet_sha256':ICON_SHA if loading_kit is not None else None,'frame_ms':50,'frames':40,'hide_at':'existing splash fade start',
+   'startup_timing_changed':False,'status_bar_reference':'hardware validated: status-bar flash eliminated (6cbe39a7f5ad)'}
   with output.open('xb') as dest,signed.open('rb') as src:shutil.copyfileobj(src,dest)
   output.chmod(0o600)
   if sha(output)!=info['sha256']:output.unlink();raise PatchError('Final copy checksum mismatch')
@@ -295,7 +324,11 @@ def pick(prompt:str)->Path:
 
 def main(argv=None):
  os.umask(0o077)
- parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--apk',type=Path);parser.add_argument('--artwork',type=Path);parser.add_argument('--output',type=Path);parser.add_argument('--cache',type=Path);args=parser.parse_args(argv)
+ parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--apk',type=Path);parser.add_argument('--artwork',type=Path);parser.add_argument('--output',type=Path);parser.add_argument('--cache',type=Path)
+ animation=parser.add_mutually_exclusive_group()
+ animation.add_argument('--loading-kit',type=Path,help='Private xmen-purple-loading-kit.zip (only its pinned sprite sheet is read)')
+ animation.add_argument('--loading-animation',action='store_true',help='Open a Mac file picker for the optional purple-neon loading kit')
+ args=parser.parse_args(argv)
  system,machine=platform.system(),platform.machine()
  if system=='Darwin' and tuple(map(int,platform.mac_ver()[0].split('.')[:1]))<(12,):raise PatchError('The experimental compiler requires macOS 12 or newer')
  original=args.apk or (pick('Choose your ORIGINAL Marvel Cosmic Invasion APK') if system=='Darwin' else None)
@@ -304,6 +337,12 @@ def main(argv=None):
  original,artwork=private(original),private(artwork)
  if sha(original)!=ORIGINAL_SHA:raise PatchError('Original APK checksum mismatch; stopping before dependency installation')
  validate_png(artwork)
+ loading_kit=args.loading_kit
+ if args.loading_animation:
+  if system!='Darwin':raise PatchError('Use --loading-kit PATH on Linux')
+  loading_kit=pick('Choose xmen-purple-loading-kit.zip (the PNG loading animation kit)')
+ if loading_kit is not None:
+  loading_kit=private(loading_kit);read_loading_sheet(loading_kit)
  for name,digest in json.loads((REPO/'workshop/profiles/marvel-cosmic-invasion.json').read_text())['source_checksums'].items():
   if sha(REPO/name)!=digest:raise PatchError('The working Marvel patch changed: '+name)
  default=Path.home()/('Library/Caches/android-4x3-marvel' if system=='Darwin' else '.cache/android-4x3-marvel')
@@ -321,7 +360,7 @@ def main(argv=None):
    else:os.environ['MARVEL_FORCE_PRIVATE_JAVA']=previous
  tools=extra_tools(cache,system,machine)
  output=args.output or Path.home()/'Downloads'/('Marvel-4x3-startup-exit-'+datetime.now().strftime('%Y%m%d-%H%M%S'))/'Marvel-Cosmic-Invasion-4x3-startup-exit-experimental.apk'
- info=build(original,artwork,output,tools);print(json.dumps(info,indent=2))
+ info=build(original,artwork,output,tools,loading_kit);print(json.dumps(info,indent=2))
  if system=='Darwin':subprocess.run(['open','-R',str(output)],check=False)
 
 if __name__=='__main__':
