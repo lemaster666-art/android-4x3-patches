@@ -12,6 +12,8 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.util.Log;
 import java.io.InputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -24,6 +26,7 @@ public final class EnhancedUi {
     private static long attachedAt;
     private static boolean fading;
     private static boolean failed;
+    private static boolean windowStyleLogged;
     private static Runnable watchdog;
     private static Runnable fadeRecovery;
     private static long fadeStartedAt;
@@ -38,10 +41,10 @@ public final class EnhancedUi {
     private static final RectF DEST=new RectF();
 
     public static void attach(final SplashView view) {
-        current=new WeakReference<>(view); fading=false; blackDrawnAt=-1; attachedAt=SystemClock.uptimeMillis();
+        current=new WeakReference<>(view); fading=false; blackDrawnAt=-1; windowStyleLogged=false; attachedAt=SystemClock.uptimeMillis();
         view.setBackgroundColor(Color.BLACK); view.setAlpha(1f);
-        // Leave window flags, insets and focus handling to the unchanged
-        // original DisplayFix/SDL pipeline, as in the baseline 4:3 build.
+        // The original window handler owns flags/insets. Its queued window-style
+        // request is filtered only while this splash is active; no extra observers.
         if(failed) { MAIN.post(new Runnable(){public void run(){finish(view);}}); return; }
         try(InputStream input=view.getContext().getAssets().open("android4x3/splash.png")) {
             BitmapFactory.Options options=new BitmapFactory.Options();options.inPreferredConfig=Bitmap.Config.ARGB_8888;
@@ -77,6 +80,26 @@ public final class EnhancedUi {
             // black draw, not an estimated fade deadline after a stalled redraw.
             MAIN.post(new Runnable(){public void run(){finish(view,true);}});
         }else if(fading || fade<1f)view.postInvalidateOnAnimation();
+    }
+    /** Called on Android's UI thread after the original handler unboxes a style command. */
+    public static int splashWindowStyle(int requestedFullscreen) {
+        SplashView view=current.get();
+        if(requestedFullscreen!=0 || failed || view==null)return requestedFullscreen;
+        // Prevent the original windowed branch from SHOWING bars over the PNG.
+        // Retain the existing full-screen branch; do not resize native buffers.
+        if(!windowStyleLogged) {
+            windowStyleLogged=true;
+            String message="startup windowed-style request kept Android full-screen while PNG active";
+            Log.i("Android4x3Marvel",message);
+            try {
+                File dir=view.getContext().getExternalFilesDir(null);
+                if(dir==null)dir=view.getContext().getFilesDir();
+                try(FileOutputStream out=new FileOutputStream(new File(dir,"android4x3-enhancements.txt"),true)) {
+                    out.write(("uptime="+SystemClock.uptimeMillis()+" "+message+"\n").getBytes("UTF-8"));
+                }
+            }catch(Exception ignored){} // Diagnostics must not change command handling.
+        }
+        return 1;
     }
     public static boolean handoff(final Activity activity) {
         // Called on the game thread BEFORE its original graphics manager presents the first logo frame.

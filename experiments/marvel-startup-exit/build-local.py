@@ -145,12 +145,34 @@ def transform_application(source:str)->str:
 '''+call+'\n    :enhanced_done')
  return source.replace(method,replacement)
 
+
+def transform_window_command(source:str)->str:
+ signature='.method public handleMessage(Landroid/os/Message;)V'
+ method=baseline().method_blocks(source).get(signature,'')
+ context='''    invoke-virtual {p1}, Ljava/lang/Integer;->intValue()I
+
+    move-result p1
+
+    if-eqz p1, :cond_c3'''
+ if ('EnhancedUi' in source or method.count(context)!=1
+     or method.count('if-eq v2, v5, :cond_91')!=1
+     or method.count('const/16 p1, 0x1706')!=1
+     or method.count('const/16 p1, 0x100')!=1):
+  raise PatchError('Unsupported Android window-style command context')
+ replacement=context.replace('    if-eqz p1, :cond_c3','''    invoke-static {p1}, Lcom/vocies61/marvelcosmic/EnhancedUi;->splashWindowStyle(I)I
+    move-result p1
+
+    if-eqz p1, :cond_c3''')
+ # Everything except this valid-Integer window-style decision remains original,
+ # including keyboard, title, keep-awake, non-Integer and native-insets handling.
+ return source.replace(method,method.replace(context,replacement))
+
 def patch_classes(original:bytes,work:Path)->Path:
  if hashlib.sha256(original).hexdigest()!=DEX_SHA:raise PatchError('Unsupported original classes.dex')
  module=baseline();module.check_dex(original)
  dex=work/'classes-original.dex';dex.write_bytes(original);tree=work/'original-smali';result=work/'classes.dex'
  module.smali_command('org.jf.baksmali.Main','disassemble','--api','26',str(dex),'-o',str(tree))
- mapping={'com/vocies61/marvelcosmic/SplashView.smali':transform_splash,'com/vocies61/marvelcosmic/SpexApplication.smali':transform_application}
+ mapping={'com/vocies61/marvelcosmic/SplashView.smali':transform_splash,'com/vocies61/marvelcosmic/SpexApplication.smali':transform_application,'org/libsdl/app/SDLActivity$SDLCommandHandler.smali':transform_window_command}
  before={str(p.relative_to(tree)):p.read_text() for p in tree.rglob('*.smali')}
  for name,transform in mapping.items():
   p=tree/name;p.write_text(transform(before[name]))

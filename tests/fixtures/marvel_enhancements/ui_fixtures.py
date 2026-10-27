@@ -2,7 +2,7 @@
 
 SOURCES = {
     'android/content/Context.java': '''package android.content;
-public class Context {public android.content.res.AssetManager getAssets(){return new android.content.res.AssetManager();}}''',
+public class Context {public android.content.res.AssetManager getAssets(){return new android.content.res.AssetManager();}public java.io.File getExternalFilesDir(String s){return new java.io.File(System.getProperty("marvel.ui.logdir"));}public java.io.File getFilesDir(){return getExternalFilesDir(null);}}''',
     'android/content/res/AssetManager.java': '''package android.content.res;
 public class AssetManager {public java.io.InputStream open(String s){return new java.io.ByteArrayInputStream(new byte[]{1});}}''',
     'android/os/Build.java': '''package android.os; public class Build {public static class VERSION {public static int SDK_INT=34;}}''',
@@ -19,7 +19,7 @@ public class Handler {
  public static boolean hasCurrent(){synchronized(tasks){return !tasks.isEmpty() && tasks.peek().time<=SystemClock.now;}}
  public static void advanceTo(long end){int limit=10000;while(true){Task task;synchronized(tasks){if(tasks.isEmpty() || tasks.peek().time>end)break;task=tasks.remove();}if(--limit==0)throw new AssertionError("Unbounded UI scheduling");SystemClock.now=task.time;task.run.run();}SystemClock.now=end;}
 }''',
-    'android/util/Log.java': '''package android.util; public class Log {public static int e(String t,String m){return 0;}public static int e(String t,String m,Throwable e){return 0;}}''',
+    'android/util/Log.java': '''package android.util; public class Log {public static int i(String t,String m){return 0;}public static int e(String t,String m){return 0;}public static int e(String t,String m,Throwable e){return 0;}}''',
     'android/graphics/Color.java': '''package android.graphics; public class Color {public static final int BLACK=0xff000000;}''',
     'android/graphics/Bitmap.java': '''package android.graphics;public class Bitmap {public boolean recycled;public static class Config {public static final Config ARGB_8888=new Config();}public void recycle(){recycled=true;}}''',
     'android/graphics/BitmapFactory.java': '''package android.graphics;public class BitmapFactory {public static class Options {public Bitmap.Config inPreferredConfig;}public static Bitmap decodeStream(java.io.InputStream i,Object o,Options p){return new Bitmap();}}''',
@@ -64,7 +64,10 @@ public class StartupHarness {
   Activity activity=new Activity();View decor=activity.getWindow().getDecorView();ViewTreeObserver tree=decor.getViewTreeObserver();
   int[] originalCallbacks={0,0};ViewTreeObserver.OnWindowFocusChangeListener oldFocus=f->originalCallbacks[0]++;ViewTreeObserver.OnPreDrawListener oldDraw=()->{originalCallbacks[1]++;return true;};tree.addOnWindowFocusChangeListener(oldFocus);tree.addOnPreDrawListener(oldDraw);
   decor.flags=5894;decor.insets.visible=0;activity.getWindow().flags=WindowManager.LayoutParams.FLAG_FULLSCREEN;
+  check(EnhancedUi.splashWindowStyle(0)==0 && EnhancedUi.splashWindowStyle(1)==1 && EnhancedUi.splashWindowStyle(2)==2,"Changed style before the splash exists");
   SplashView splash=new SplashView(activity);EnhancedUi.attach(splash);Handler.advanceTo(250);
+  check(EnhancedUi.splashWindowStyle(0)==1 && EnhancedUi.splashWindowStyle(1)==1 && EnhancedUi.splashWindowStyle(2)==2,"Windowed command can show bars over the PNG");
+  check(EnhancedUi.splashWindowStyle(0)==1,"Repeated windowed command not guarded");
   int initialMid=Canvas.alphas.get(Canvas.alphas.size()-1);check(initialMid>=120 && initialMid<=140,"PNG fade-in must take 500ms");Handler.advanceTo(1000);
   check(splash.finishes==0,"Splash disappeared during loading");check(Canvas.alphas.get(Canvas.alphas.size()-1)==255,"PNG not opaque while loading");
   check(decor.flags==5894 && activity.getWindow().flags==WindowManager.LayoutParams.FLAG_FULLSCREEN,"Changed original full-screen state");
@@ -73,6 +76,7 @@ public class StartupHarness {
   check(originalCallbacks[0]==1 && originalCallbacks[1]==1,"Lost original SDL callbacks");
   check(tree.focus.size()==1 && tree.pre.size()==1,"Added competing startup observers");
   decor.flags=5894;decor.insets.visible=0;
+  if(args[0].equals("failed")){EnhancedUi.failOpen();check(EnhancedUi.splashWindowStyle(0)==0 && splash.finishes==1,"Failed startup forced fullscreen");System.out.println("PASS startup failed");return;}
   if(args[0].equals("paused"))splash.drawing=false;
   int samples=Canvas.alphas.size();long start=SystemClock.now;
   Thread worker=new Thread(()->{result=EnhancedUi.handoff(activity);returned=true;});worker.start();
@@ -94,6 +98,7 @@ public class StartupHarness {
     Handler.advanceTo(start+2024);
    }
    check(Canvas.alphas.get(Canvas.alphas.size()-1)==0 && !returned,"Full black not held before logo presentation");
+   check(EnhancedUi.splashWindowStyle(0)==1,"Guard ended during the black hold");
    long blackAt=-1;for(int i=samples;i<Canvas.alphas.size();i++)if(Canvas.alphas.get(i)==0){blackAt=Canvas.times.get(i);break;}
    check(blackAt>=start+2000,"Black endpoint arrived too early");
    Handler.advanceTo(blackAt+499);check(!returned && splash.finishes==0,"Black hold must last 500ms from actual redraw");
@@ -106,6 +111,7 @@ public class StartupHarness {
   }
   check(tree.focus.size()==1 && tree.pre.size()==1,"Startup observers leaked into gameplay");
   check(tree.focus.contains(oldFocus) && tree.pre.contains(oldDraw),"Removed original SDL observers");
+  check(EnhancedUi.splashWindowStyle(0)==0 && EnhancedUi.splashWindowStyle(1)==1,"Original window-style policy not restored after splash completion/detach");
   check(decor.flagWrites==0 && activity.getWindow().writes==0 && activity.getWindow().getInsetsController().hides==0 && activity.getWindow().getInsetsController().behavior==0,"Helper competes with original bar handling");
   Handler.advanceTo(start+65000);check(splash.finishes<=1,"Stale watchdog finished twice");
   System.out.println("PASS startup "+args[0]);

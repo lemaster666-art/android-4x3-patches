@@ -99,6 +99,39 @@ def test_application_dispatch_and_original_fallback():
  with pytest.raises(build.PatchError):build.transform_application(new)
 
 
+def test_window_command_guard_is_local_and_rejects_unknown_context():
+ # Authored minimal dispatch fixture; not extracted game code.
+ source='''.class public Lorg/libsdl/app/SDLActivity$SDLCommandHandler;
+.super Landroid/os/Handler;
+.method public handleMessage(Landroid/os/Message;)V
+    .registers 10
+    if-eq v2, v5, :cond_91
+    return-void
+    :cond_91
+    invoke-virtual {p1}, Ljava/lang/Integer;->intValue()I
+
+    move-result p1
+
+    if-eqz p1, :cond_c3
+    const/16 p1, 0x1706
+    return-void
+    :cond_c3
+    const/16 p1, 0x100
+    return-void
+.end method
+.method public unrelated()V
+    .registers 1
+    return-void
+.end method
+'''
+ new=build.transform_window_command(source)
+ insertion='    invoke-static {p1}, Lcom/vocies61/marvelcosmic/EnhancedUi;->splashWindowStyle(I)I\n    move-result p1\n\n'
+ assert new.count(insertion)==1
+ assert new.replace(insertion,'')==source
+ for bad in [new,source.replace('0x100','0x101'),source.replace('0x1706','0x1707'),source.replace('if-eq v2, v5, :cond_91','if-eq v2, v4, :cond_91')]:
+  with pytest.raises(build.PatchError):build.transform_window_command(bad)
+
+
 def test_private_paths_and_original_build_guards(tmp_path):
  with pytest.raises(build.PatchError):build.private(ROOT/'test.apk')
  bad=tmp_path/'wrong.apk';bad.write_bytes(b'bad')
@@ -226,7 +259,10 @@ def test_java_startup_fade_original_window_policy_and_pause_recovery(tmp_path):
   p=src/name;p.parent.mkdir(parents=True,exist_ok=True);p.write_text(data);paths.append(p)
  result=subprocess.run([str(jdk/'bin/javac'),'-source','8','-target','8','-d',str(classes),*[str(p) for p in paths],str(HERE/'java/com/vocies61/marvelcosmic/EnhancedUi.java')],capture_output=True,text=True)
  assert result.returncode==0,result.stdout+result.stderr
- for mode in ['success','paused','detached','legacy','late-black']:
-  result=subprocess.run([str(jdk/'bin/java'),'-cp',str(classes),'com.vocies61.marvelcosmic.StartupHarness',mode],capture_output=True,text=True,timeout=10)
+ for mode in ['success','paused','detached','legacy','late-black','failed']:
+  log=tmp_path/mode;log.mkdir()
+  result=subprocess.run([str(jdk/'bin/java'),'-Dmarvel.ui.logdir='+str(log),'-cp',str(classes),'com.vocies61.marvelcosmic.StartupHarness',mode],capture_output=True,text=True,timeout=10)
   assert result.returncode==0,result.stdout+result.stderr+f' mode={mode}'
   assert 'PASS startup '+mode in result.stdout
+  text=(log/'android4x3-enhancements.txt').read_text()
+  assert text.count('startup windowed-style request kept Android full-screen while PNG active')==1

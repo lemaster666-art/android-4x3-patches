@@ -116,6 +116,22 @@ DisplayFix/SDL full-screen policy as the sole owner. The accepted Exit code and
 fade timings are unchanged. This comparison still needs device validation and
 is not recorded as a successful repair.
 
+The owner subsequently reported that this controlled build did not fix the
+flash. A private clip reviewed on **2026-10-27** shows a brief return of Android's
+clock/battery bar after the PNG initially appears with bars hidden, lasting
+approximately 0.17 seconds. The toast remains visible across the event. This
+supersedes the earlier hypothesis that only the initial launch window was
+involved; it does not establish a triggering callback. The downloaded movie and
+review images were deleted; no video or frames were published.
+
+The current candidate guards the original Android Java window-style command
+only during the active PNG splash. A valid windowed request takes the existing
+fullscreen branch until the splash ends; later requests and startup failures
+retain original handling. The native SDL/FNA libraries, internal rendering,
+Exit helper and fade timings are unchanged. The candidate passed **316 host
+tests** plus a private build/sign/alignment/member-integrity check. A diagnostic
+line records actual guard execution, but device validation is still pending.
+
 Before this device test, the corrected source passed **309 automated tests** and
 a private cloud rebuild passed ZIP integrity, alignment, signing and unchanged
 member checks. The proven display DEX remained identical; **3238 other original

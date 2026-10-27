@@ -34,17 +34,39 @@ private capture showed the game window already full-screen and the status bar
 marked hidden in all 28 samples containing that window. This does not identify
 the pixels visible during the reported flash. Timed screenshots did not catch it.
 
-**Current controlled regression test:** the authored splash helper no longer
-changes window flags, system-bar visibility or behavior, and installs no window
-focus/pre-draw observers. Full-screen ownership belongs solely to the original
-DisplayFix/SDL code used by the baseline 4:3 build. This removes the competing
-startup controller rather than adding another bar-hiding mechanism. The original
-native lifecycle, manifest, display DEX, accepted Exit helper and fade timings
-remain unchanged. This is not a full APK rollback: it retains the selected PNG
-and working Exit repair. It tests whether the added window handling contributes
-to the regression; it **does not yet establish a repaired status bar**. No further
-capture is required for the owner's next visual comparison. The Android-owned
-circular-icon launch screen is unchanged.
+The controlled regression build `9787a9c` removed the helper's extra window
+handling; the owner reported that this also did **not** stop the flash. The
+first flash report in the conversation followed `f7799e2`, when the frame/Exit
+hooks first attached successfully. Its Java splash code was identical to the
+preceding `c91ccb8`; this identifies the first reported boundary, not the cause.
+
+**Video evidence, 27 October 2026:** a private startup clip shows the PNG first
+appearing with no status-bar text. Roughly 1.4 seconds later, the Android clock
+and battery bar reappear for about 0.17 seconds, then hide again while the toast
+remains. Timing is approximate and comes from this clip, not the earlier window
+capture. This identifies a real, brief SystemUI bar return after the PNG appears;
+it does not by itself identify which callback requested it. It also explains
+how periodic snapshots can miss the event. Only written findings are retained;
+the downloaded video and extracted review images were deleted after review.
+
+**Current narrowly scoped test:** the original Android window-style handler has
+a windowed branch that shows bars, clears `FLAG_FULLSCREEN` and enables
+`FLAG_FORCE_NOT_FULLSCREEN`. The original display shim schedules re-hide after
+150 ms when fullscreen visibility is lost. That mechanism is consistent with the
+observed flash but is not a device-traced causal proof. A guarded patch now
+filters the handler's valid Integer style argument: zero (windowed) becomes one
+(fullscreen) only while the authored PNG splash is active and startup has not
+failed. The existing fullscreen branch writes all flags; no extra window
+observers or re-hide timers are added. Before attachment, after dismissal/detach
+and on startup failure, the original argument and behavior are preserved.
+
+This changes the Android Java presentation bridge, **not the native SDL3/FNA
+libraries**, game rendering size, camera, original managed code, protected
+lifecycle, manifest, accepted Exit helper or fade timings. The circular-icon
+launch screen is unchanged. The guard records one diagnostic line when it
+actually intercepts a windowed request. This remains a **candidate requiring
+Retroid validation**, not a confirmed fix. No further screenshot capture is
+required for the next normal visual comparison.
 
 This is owner-reported physical-device validation, distinct from host tests and
 cloud packaging checks. It applies to the exact supported APK and device, not
@@ -97,11 +119,10 @@ size (maximum 4096 in either dimension and 12 megapixels).
   `0accefb0c85def38839d3e3015d130967a21b7545869f6cefcd7efc23bcc2fe1`.
 - The custom splash displays the **entire selected PNG** stretched into a
   centered 4:3 rectangle: 1240 x 930 with 75-pixel top/bottom borders when its
-  full-screen View is 1240 x 1080. The original DisplayFix/SDL code owns immersive
-  mode; this splash helper makes no window/insets requests.
+  full-screen View is 1240 x 1080. The original Android window handler owns
+  flag/insets writes; its windowed-style argument is guarded while PNG is active.
   It has a 500 ms fade-in, no zoom/gradient/title/port-credit/donation button,
-  and no promotional tap target. It preserves the original window listeners,
-  flags and insets policy during loading, focus changes and the logo handoff.
+  and no promotional tap target. No extra window listeners are installed.
 - Splash dismissal is triggered by a matching game-frame callback, replacing
   the seven-second dismissal timer. The PNG fades to its black backdrop over
   **2000 ms**, holds full black for **500 ms**, then lets the original graphics
@@ -163,6 +184,12 @@ A second, authored helper is built from the sources here:
    singleton reference without releasing the underlying Studio system. Extra
    cleanup is gated behind successful game completion, after save cleanup has
    returned. The existing failure/diagnostic path does not close the activity.
+6. A unique, audited decision in
+   `SDLActivity$SDLCommandHandler.handleMessage` calls the authored
+   `splashWindowStyle(int)` after the original Integer unboxing and before its
+   fullscreen/windowed branch. All other method instructions remain original.
+   Non-Integer fallback, keyboard/title/keep-awake commands, original insets
+   notification and calls after the splash retain their original handling.
 
 The reusable lesson for desktop-to-Android ports is to connect successful game
 loop completion to Android activity teardown: a desktop-style return from the
@@ -218,6 +245,11 @@ same app external-files directory used by `spex-boot.txt`. Retrieve it privately
 ```
 
 No game content or diagnostic captures are published by the build scripts.
+When the new style guard executes, the same private file contains
+`startup windowed-style request kept Android full-screen while PNG active`,
+prefixed with device uptime. It logs once per splash; absence of that line means
+the capture does not establish that the guarded path was reached. Diagnostic
+file-write failure does not prevent normal command handling.
 
 ## Capture the early status-bar flash without rebuilding
 
@@ -305,19 +337,22 @@ handoff), JNI ABI checks against JDK headers, JNI/Mono loader argument/error
 execution with authored doubles, and Java destruction/exit ordering. These
 host tests cannot establish Android runtime behavior.
 
-The controlled window-policy follow-up passed **315 automated tests** and a fresh private
+The window-command follow-up passed **316 automated tests** and a fresh private
 rebuild/sign/alignment/integrity check. An executable Java UI harness checks
 the 500 ms fade-in, monotonic 2000 ms alpha reduction and a full 500 ms black
 hold before game release, including when the first black redraw is delayed, a
 fully visible PNG during loading, unchanged complete-source 4:3 bounds,
-absence of helper window-flag/insets writes at attach, focus changes and
-handoff, preservation of existing SDL observers and callbacks, pre-API-30
-behavior and safe paused/detached recovery. Against
-the corrected Exit cloud reference, only `classes3.dex` and signature metadata
-changed: the managed helper, native bridge, `classes.dex` and baseline
-`classes2.dex` remained byte-for-byte identical. This is host/package evidence;
-the removal of the added controller still needs Retroid testing. Host checks
-cannot establish that a physical status-bar flash has disappeared.
+no direct helper window-flag/insets writes at attach, focus changes and handoff,
+preservation of existing SDL observers/callbacks, pre-API-30 behavior and safe
+paused/detached recovery. The Java harness executes the guard before attachment,
+during PNG and black hold, on failure and after dismissal/detach, checks that
+nonzero arguments pass through, and verifies one diagnostic line per splash.
+The smali test verifies that only the audited style decision gains a call and
+rejects unknown/already-patched contexts. Actual APK assembly exercises the
+original guarded method. Against the previous controlled cloud reference,
+only `classes.dex`, `classes3.dex` and signature metadata change: the managed
+helper, native bridge and baseline `classes2.dex` remain byte-for-byte identical.
+This is host/package evidence; a physical status-bar fix is still unverified.
 
 With a private .NET SDK and JDK prepared, run the complete tests with:
 
