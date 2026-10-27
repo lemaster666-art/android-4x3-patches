@@ -8,7 +8,9 @@ See its [build and installation limitations](games/marvel-cosmic-invasion/README
 Its [optional startup/Exit builder](experiments/marvel-startup-exit/README.md)
 also has owner-reported Retroid Pocket Classic / Android 14 validation for clean
 main-menu Exit with audio stopped and PNG coverage until the developer logos
-(2026-10-26). A brief startup status-bar appearance remains unresolved.
+(2026-10-26). The splash-scoped window-style guard at
+[`6cbe39a7f5ad`](https://github.com/lemaster666-art/android-4x3-patches/commit/6cbe39a7f5ad14911f1d2dc3f4a82ee35cb7c82c)
+is **hardware validated: status-bar flash eliminated** on that device (2026-10-27).
 
 > New here? Start with the [step-by-step APK patching guide](PATCHING_GUIDE.md).
 > Maintainers and contributors can also read the [verification record](VERIFICATION.md)
@@ -88,6 +90,17 @@ See the [workflow, local builder and validation guide](workshop/README.md).
 Only code, synthetic tests, configuration and documentation belong in GitHub.
 This opt-in workflow does not assume every game is patchable or change existing
 game launchers.
+
+### Startup and Exit repair workshops
+
+In this project's Codex chat, use **`EXIT issues`** for shutdown/save/audio
+investigation or **`STARTUP&EXIT ISSUE`** for startup, splash/loading transitions
+and Exit. Capitalization, ordinary spacing and punctuation variations are accepted.
+Combine either with `4:3 time` when an aspect modification is also requested.
+Provide the original-APK link once; analysis stays private and delivery uses a
+one-command Mac build from your own local APK. These are engineering workflows,
+not universal patches. See the [repair guide](workshop/repairs/README.md) and
+[validated Marvel reference](workshop/repairs/MARVEL_REFERENCE.md).
 
 ### macOS or Linux
 

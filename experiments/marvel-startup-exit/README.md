@@ -2,6 +2,21 @@
 
 This is a separate, opt-in local builder. It preserves the working
 `games/marvel-cosmic-invasion/` patch and its original one-command Mac launcher.
+
+**Hardware validated: status-bar flash eliminated.** On **2026-10-27**, the owner
+confirmed successful Retroid Pocket Classic / Android 14 testing of
+[`6cbe39a7f5ad14911f1d2dc3f4a82ee35cb7c82c`](https://github.com/lemaster666-art/android-4x3-patches/commit/6cbe39a7f5ad14911f1d2dc3f4a82ee35cb7c82c).
+The splash-scoped window-style guard is now a validated repair alongside the
+custom PNG, developer-logo handoff/timing, 4:3 presentation and Android Exit/audio
+cleanup. These are owner-reported hardware successes for this supported build,
+not host-only claims or universal compatibility. The working source, tests and
+Mac launcher are preserved by the [repair reference profile](../../workshop/repairs/marvel-cosmic-invasion.json).
+Future sessions can use `STARTUP&EXIT ISSUE`; see the
+[reusable technical reference](../../workshop/repairs/MARVEL_REFERENCE.md).
+
+The paragraphs below retain the earlier investigation history. Previous failed
+attempts and unverified candidates are superseded by that hardware result.
+
 **Main-menu Exit is device-validated on the supported port.** On 26 October 2026,
 the owner tested the local build from commit
 `f7799e29a8346aefa8028cc9dc19c00afa69000f` on a Retroid Pocket Classic running
@@ -21,7 +36,7 @@ bar still appeared **over the PNG**. Setting `TOAST_WINDOW` to `ignore` succeede
 yet the startup toast remained. Neither attempt is recorded as a fix for its
 respective issue.
 
-**Current startup-only follow-up needs a new device test.** At the owner's
+**Preserved startup presentation.** At the owner's
 request it uses a 500 ms PNG fade-in, then keeps the image fully visible during
 loading. Once the first logo frame is ready, it fades out for **two seconds**,
 holds **full black for 500 ms**, then releases that frame. The extra 2.5 seconds
@@ -49,7 +64,7 @@ it does not by itself identify which callback requested it. It also explains
 how periodic snapshots can miss the event. Only written findings are retained;
 the downloaded video and extracted review images were deleted after review.
 
-**Current narrowly scoped test:** the original Android window-style handler has
+**Validated narrowly scoped repair:** the original Android window-style handler has
 a windowed branch that shows bars, clears `FLAG_FULLSCREEN` and enables
 `FLAG_FORCE_NOT_FULLSCREEN`. The original display shim schedules re-hide after
 150 ms when fullscreen visibility is lost. That mechanism is consistent with the
@@ -64,9 +79,10 @@ This changes the Android Java presentation bridge, **not the native SDL3/FNA
 libraries**, game rendering size, camera, original managed code, protected
 lifecycle, manifest, accepted Exit helper or fade timings. The circular-icon
 launch screen is unchanged. The guard records one diagnostic line when it
-actually intercepts a windowed request. This remains a **candidate requiring
-Retroid validation**, not a confirmed fix. No further screenshot capture is
-required for the next normal visual comparison.
+actually intercepts a windowed request. The owner has now physically confirmed
+that this implementation eliminates the flash on the named device. Each new APK
+or device still needs its own validation; no additional screenshot capture is
+needed to establish this reported success.
 
 This is owner-reported physical-device validation, distinct from host tests and
 cloud packaging checks. It applies to the exact supported APK and device, not
@@ -352,7 +368,9 @@ rejects unknown/already-patched contexts. Actual APK assembly exercises the
 original guarded method. Against the previous controlled cloud reference,
 only `classes.dex`, `classes3.dex` and signature metadata change: the managed
 helper, native bridge and baseline `classes2.dex` remain byte-for-byte identical.
-This is host/package evidence; a physical status-bar fix is still unverified.
+This is host/package evidence, supplemented by the owner's **2026-10-27 physical
+confirmation that the status-bar flash is eliminated**. The workflow/knowledge
+update adds no runtime changes to that validated source.
 
 With a private .NET SDK and JDK prepared, run the complete tests with:
 

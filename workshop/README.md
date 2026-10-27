@@ -20,6 +20,12 @@ game, writes and tests a defensible patch, and prepares a local build command.
 It is **not** a universal binary patcher. Some games will be unsupported or need
 information/access that cannot be inferred; Codex must report that honestly.
 
+For shutdown alone use `EXIT issues`; for startup/splash transitions plus shutdown
+use `STARTUP&EXIT ISSUE`. They are registered alongside this workflow in
+`AGENTS.md`, accept case/spacing/punctuation variations and can be combined with
+`4:3 time`. Reuse one APK intake/environment and preserve working patches. See the
+[shared repair workshop](repairs/README.md) and [Marvel reference](repairs/MARVEL_REFERENCE.md).
+
 ## Your default result
 
 Retroid Pocket Classic, Android 14, **1240×1080** display; the complete original
@@ -192,3 +198,11 @@ approximately 30-minute gameplay result are owner-reported on 2026-10-25; the
 new shared picker/setup is covered by mocks and host-side tests, not a new Mac or
 Retroid run. The skill cannot automatically prove an arbitrary game is patchable,
 and a fresh Codex session's reasoning is not an automated test result.
+
+On **2026-10-27**, the persistent Exit and combined startup/Exit workflows were
+added alongside this skill. The full suite passed **358 tests with required
+native checks enabled**, including command routing/combination, preserved Marvel
+source pins, safe Mac command generation and lifecycle-order assertions. The
+working Marvel implementation was not changed for that framework update. Its
+status-bar guard is now separately owner hardware-validated; see the
+[repair reference](repairs/MARVEL_REFERENCE.md).

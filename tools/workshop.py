@@ -11,7 +11,6 @@ import os
 from pathlib import Path
 import platform
 import re
-import shlex
 import subprocess
 import sys
 
@@ -20,6 +19,7 @@ sys.path.insert(0, str(REPO / "src"))
 from android4x3.errors import PatchError
 from android4x3.registry import Registry
 from android4x3 import workshop as w
+from android4x3.delivery import mac_source_command
 
 
 def reference_tools():
@@ -62,18 +62,7 @@ def install_dependencies(profile: dict, cache: Path) -> str:
 def mac_command(game: str, ref: str, repository: str) -> str:
     if not w.GAME_ID.fullmatch(game) or not re.fullmatch(r"(?:main|[0-9a-f]{40})", ref):
         raise PatchError("Command needs a safe game ID and main or a full published commit SHA")
-    if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
-        raise PatchError("Repository must be owner/name without credentials")
-    owner, name = repository.split("/")
-    suffix = "refs/heads/main" if ref == "main" else ref
-    url = f"https://codeload.github.com/{owner}/{name}/zip/{suffix}"
-    folder = name + "-" + ref
-    return (" && " + chr(92) + chr(10)).join([
-        "apk4x3_code=$(mktemp -d)",
-        f"curl --proto '=https' --proto-redir '=https' -fL {shlex.quote(url)} -o \"$apk4x3_code/tools.zip\"",
-        "ditto -x -k \"$apk4x3_code/tools.zip\" \"$apk4x3_code\"",
-        f"bash \"$apk4x3_code/{folder}/tools/workshop-build.sh\" {shlex.quote(game)}",
-    ])
+    return mac_source_command("tools/workshop-build.sh", ref, repository, (game,))
 
 
 def audit_staged() -> dict:

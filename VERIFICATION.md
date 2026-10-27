@@ -29,7 +29,7 @@ stored in this record.
 | Advent Neon, AM2R | Experimental | Advent Neon was rebuilt clean-to-patched with centered title/controls/warning foregrounds and exact-known GameMaker splash neutralization; signed post-state recognition, adopted-storage installation, and cold launch passed. Latest placement awaits visual confirmation. AM2R retains its prior result. |
 | Rogue Legacy, STALKER: Call of Pripyat Mobile | Experimental | Rogue Legacy's clean reference recognizes the jointly centered options, full 1320x990 map/teleporter target, restored 720-line world-grid normalization, post-scale right-aligned proportional full-height loading gate, top-overscanned pause dimmer, bottom-docked projectile edge marker, top-anchored extended death spotlights, and screen-local touch-overlay suppression. The unrelated rune shop remains at its original Y=360. The rebuilt APK reached signed post-state and was installed on adopted storage. STALKER upgrades settings text to 19/21/24/26 while accepting the earlier pass as input. Rogue Legacy's latest visual confirmation remains pending. |
 | Children of Morta, Death Road to Canada, Dusklight, Grimvalor, Huntdown | Experimental | Proprietary-free target tests and development-output checks pass. Death Road analog-axis, D-pad, and idle captures kept the same selection and showed the same animated highlight, so no input patch was added. Complete visual inspection remains pending. |
-| Marvel Cosmic Invasion | Experimental; optional Exit repair device-validated | User-reported Retroid Pocket Classic / Android 14 validation: local Mac build and 4:3 menus plus approximately 30 minutes of gameplay on 2026-10-25; corrected optional build closes cleanly from Exit with no lingering audio/hang, and PNG persists until developer logos on 2026-10-26. Brief startup status-bar appearance remains unresolved. See the detailed scope below. |
+| Marvel Cosmic Invasion | Experimental profile; 4:3/startup/Exit hardware validated | Owner-reported Retroid Pocket Classic / Android 14: local Mac build and 4:3 menus plus approximately 30 minutes of gameplay (2026-10-25); clean Exit/audio shutdown and PNG/logo handoff (2026-10-26); **status-bar flash eliminated** by `6cbe39a7f5ad` (2026-10-27). See build-specific scope below. |
 
 | Mega Man X Regenesis | Experimental | Developer APK 1.00.82 rebuilt with the public command; signed post-state and sparse-index integrity verified. Streamed installation and in-place updates succeeded on adopted storage. Opening sequence, enlarged save-selection screen, and opening in-world dialogue inspected at 1280×960; no script errors after correcting the sparse directory. Transient Vulkan surface-loss messages occurred during transitions, followed by successful rendering; extended stability testing is pending. Options follow-up: inspected all 14 rows at 1280×960 with separated labels, checkboxes, volume bars, language and save-slot values; long English labels remain visible. The title background sprite is disabled in this developer build; settled-menu particles extend outside the old 16:9 frame, so no image crop was applied. All 192 synthetic tests pass locally, including the native rebuild/signing fixture. Full gameplay and translated UI review remain pending. |
 
@@ -69,6 +69,27 @@ limits documented. No proprietary APK, extracted game file or signing material
 is included in this record or the repository.
 
 #### Marvel Cosmic Invasion startup and Exit follow-up
+
+**Latest hardware result — 2026-10-27:** the owner confirms that
+[`6cbe39a7f5ad14911f1d2dc3f4a82ee35cb7c82c`](https://github.com/lemaster666-art/android-4x3-patches/commit/6cbe39a7f5ad14911f1d2dc3f4a82ee35cb7c82c)
+eliminates the brief Android status-bar flash during the custom PNG on Retroid
+Pocket Classic / Android 14. Record this as **hardware validated: status-bar
+flash eliminated**, alongside the custom PNG, rendering-callback handoff
+preserving developer-logo timing, established 4:3 result and clean Android
+Exit/audio shutdown. This is physical-device evidence reported by the owner,
+supplementing the reference's 316 host/native tests and private APK build checks.
+It does not establish every device/engine, save/resume case or exact fade duration.
+
+The successful repair filters the specific Android Java windowed-style request
+only during the active PNG, selecting the existing fullscreen branch rather than
+repeatedly hiding bars after they appear. Normal handling resumes afterward and
+on failure. The source, lifecycle guards, diagnostics and tests are preserved;
+new workflows document reuse without rewriting the implementation. See the
+[technical reference](workshop/repairs/MARVEL_REFERENCE.md) and
+[source-pinned profile](workshop/repairs/marvel-cosmic-invasion.json).
+
+The following paragraphs are historical investigation results; their pending
+claims are superseded by the confirmed result above.
 
 On **2026-10-26**, the same owner reported testing the corrected optional local
 build from commit `f7799e29a8346aefa8028cc9dc19c00afa69000f`, delivered through
@@ -124,13 +145,14 @@ supersedes the earlier hypothesis that only the initial launch window was
 involved; it does not establish a triggering callback. The downloaded movie and
 review images were deleted; no video or frames were published.
 
-The current candidate guards the original Android Java window-style command
+The subsequently validated implementation guards the original Android Java window-style command
 only during the active PNG splash. A valid windowed request takes the existing
 fullscreen branch until the splash ends; later requests and startup failures
 retain original handling. The native SDL/FNA libraries, internal rendering,
 Exit helper and fade timings are unchanged. The candidate passed **316 host
 tests** plus a private build/sign/alignment/member-integrity check. A diagnostic
-line records actual guard execution, but device validation is still pending.
+line records actual guard execution. The owner's later hardware confirmation is
+recorded above.
 
 Before this device test, the corrected source passed **309 automated tests** and
 a private cloud rebuild passed ZIP integrity, alignment, signing and unchanged
