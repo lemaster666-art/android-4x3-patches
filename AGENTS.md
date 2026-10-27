@@ -36,3 +36,21 @@ revision boundaries before repeated captures or speculative builds. Preserve
 the reference at `6cbe39a7f5ad14911f1d2dc3f4a82ee35cb7c82c`;
 `python tools/repair-workshop.py verify marvel-cosmic-invasion` checks its pins.
 Never publish APKs, extracted game files, private logs/video, artwork or keys.
+
+## Owner preference: include USB installation with every new build
+
+Whenever delivering a new APK build or Mac build command, also include a separate,
+paste-once Bash block for installing the locally built APK over USB. Do not wait
+for the owner to ask. Use the known Mac ADB path below, a Downloads file picker
+and `install -r`; adapt the prompt to the game when useful:
+
+```bash
+apk4x3_install=$(osascript -e 'POSIX path of (choose file with prompt "Select your NEW locally built APK" default location (path to downloads folder))') &&
+"$HOME/Downloads/platform-tools/adb" install -r "$apk4x3_install"
+```
+
+Briefly remind the owner to close the game, connect USB, enable USB debugging,
+accept authorization if prompted, select the new local output and wait for
+`Success`. Same-package, same-key updates preserve saved data. If signing differs,
+report the conflict; never automatically uninstall or clear data. This is an
+assistant delivery preference, not a change to any working patch or build script.
