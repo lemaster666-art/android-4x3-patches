@@ -109,11 +109,11 @@
     "assets/android4x3/xmen-neon-sheet.png": "3b92064ab579b3cd746718e3409f2b669f92c19cdbc7b4007b37a2f363d4139a"
   },
   "loading_animation": {
-    "status": "awaiting handheld validation",
+    "status": "hardware validated: loading icon works as intended",
     "opt_in": "--loading-animation (Mac picker) or --loading-kit PATH",
     "artwork_in_repository": false,
     "startup_timing_changed": false,
-    "hardware_validation_scope": "The hardware_validation record applies to the preserved 6cbe reference, not to this new animation candidate.",
+    "hardware_validation_scope": "Owner-reported animation success for the 0aa257e implementation on Retroid Pocket Classic / Android 14, recorded separately from the preserved 6cbe status-bar validation.",
     "placement_reference": {
       "display": [
         1280,
@@ -126,6 +126,15 @@
         160
       ],
       "reason": "Owner second placement preview: 16px lower than original kit coordinates"
+    },
+    "hardware_validation": {
+      "date": "2026-11-02",
+      "source_commit": "0aa257e003090fcf0f08b110b36c55775a814908",
+      "device": "Retroid Pocket Classic",
+      "android_version": "14",
+      "evidence": "owner-reported physical-device test",
+      "owner_report": "the loading icon asset was a success in its working intention",
+      "scope": "Loading animation works as intended; no separate exact frame/pixel measurements or pause/resume/failure coverage reported."
     }
   }
 }

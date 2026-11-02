@@ -1,8 +1,10 @@
 # Marvel Cosmic Invasion: combined startup and Exit experiment
 
-**New optional loading-animation candidate:** see [LOADING_ANIMATION.md](LOADING_ANIMATION.md)
+**Hardware validated: loading icon works as intended.** Owner confirmation on
+2026-11-02, Retroid Pocket Classic / Android 14, reference `0aa257e003090fcf0f08b110b36c55775a814908`.
+See [LOADING_ANIMATION.md](LOADING_ANIMATION.md)
 for the private kit picker (`--loading-animation`), unchanged startup timings and
-handheld acceptance checks. This opt-in animation is **awaiting handheld validation**;
+handheld evidence and acceptance checks. This opt-in animation is now owner validated;
 the successful status-bar repair below retains its validated reference status.
 
 This is a separate, opt-in local builder. It preserves the working

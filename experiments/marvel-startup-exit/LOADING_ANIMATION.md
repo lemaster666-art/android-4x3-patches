@@ -1,10 +1,19 @@
-# Optional purple-neon loading icon — candidate
+# Optional purple-neon loading icon — hardware validated
 
-**Awaiting handheld validation.** The underlying status-bar repair remains
+**Hardware validated: loading icon works as intended.** On **2026-11-02**, the
+owner confirmed that the loading icon was successful in its intended operation
+on the Retroid Pocket Classic / Android 14. The implementation reference is
+[`0aa257e003090fcf0f08b110b36c55775a814908`](https://github.com/lemaster666-art/android-4x3-patches/commit/0aa257e003090fcf0f08b110b36c55775a814908).
+This is owner-reported device evidence, separate from the earlier host regression
+and private APK packaging checks. No exact frame timing, pixel measurements or
+additional pause/resume coverage were supplied in this confirmation.
+
+The underlying status-bar repair remains
 **hardware validated: status-bar flash eliminated**, reference
 `6cbe39a7f5ad14911f1d2dc3f4a82ee35cb7c82c`, Retroid Pocket Classic / Android 14.
-This animation has host regression and private APK packaging checks; those are
-not a physical test of its appearance or disappearance timing.
+Its working guard, splash timing, 4:3 presentation and Android Exit/audio cleanup
+remain unchanged. The successful animation technique is now recorded in the
+[STARTUP&EXIT ISSUE skill](../../.agents/skills/startup-exit-issue/SKILL.md).
 
 ## What changes
 
@@ -65,7 +74,7 @@ Choose the **original APK**, **existing splash PNG**, then **loading kit ZIP**.
 The same cached tools, private signing key and Downloads output folder are used.
 The builder reads only the approved sheet from the kit; it never executes its
 scripts or extracts its other files. The GIF/APNG are previews, not APK payloads.
-The command uploads nothing. For a reviewed candidate, pin the source ZIP to its
+The command uploads nothing. To reproduce the validated implementation, pin the source ZIP to its
 full published commit instead of `main`; Codex supplies that exact command.
 
 For noninteractive invocation, pass `--loading-kit /private/path/to/kit.zip` with
@@ -109,6 +118,8 @@ Handheld acceptance: observe a sharp yellow icon with its baked-in purple halo
 during loading, normal transparent blending, correct margins and continuing
 animation after the PNG fade-in; confirm that **both icon and halo vanish at
 fade start**, never return on pause/resume, and do not affect fade/black/logo
-timing, bar-flash elimination, 4:3 gameplay or Exit/audio cleanup. Only after the
-owner confirms this candidate should the animation technique be promoted into
-the `STARTUP&EXIT ISSUE` skill.
+timing, bar-flash elimination, 4:3 gameplay or Exit/audio cleanup. The owner has
+confirmed intended operation; retain this checklist for future changes and
+separate targeted pause/resume, failure and frame-timing checks. The successful
+technique has been promoted into the `STARTUP&EXIT ISSUE` skill without changing
+the validated implementation.

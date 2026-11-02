@@ -101,10 +101,11 @@ startup + Exit and requiring its existing signer. It is not an Exit-only adapter
 `--workflow exit` against that profile fails rather than applying extra changes.
 The profile retains the 28 validated reference hashes in `validated_source_checksums`
 and pins 29 current source/test files. The optional purple-neon loading animation
-is an authorized candidate, **awaiting handheld validation**; its private kit is
+is **hardware validated: loading icon works as intended**, owner confirmation on
+2026-11-02 for `0aa257e003090fcf0f08b110b36c55775a814908`; its private kit is
 selected only with `--loading-animation` / `--loading-kit`. It leaves the existing
 handoff, timing and fullscreen guard intact. See its
-[candidate report](../../experiments/marvel-startup-exit/LOADING_ANIMATION.md).
+[implementation and validation record](../../experiments/marvel-startup-exit/LOADING_ANIMATION.md).
 An unexplained mismatch stops delivery; do not automatically repin a working implementation.
 
 ```bash

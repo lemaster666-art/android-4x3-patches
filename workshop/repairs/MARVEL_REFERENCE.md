@@ -5,10 +5,11 @@ Implementation: [experiments/marvel-startup-exit](../../experiments/marvel-start
 Preservation: [source-pinned repair profile](marvel-cosmic-invasion.json).
 
 The profile retains the 28 historical reference hashes separately from current
-source pins. The authorized [optional loading-animation candidate](../../experiments/marvel-startup-exit/LOADING_ANIMATION.md)
+source pins. The [optional loading animation](../../experiments/marvel-startup-exit/LOADING_ANIMATION.md)
 extends the existing drawing path without changing the validated guard, handoff
-or startup timings. Its appearance/disappearance is **awaiting handheld validation**;
-the hardware evidence below applies to the preserved reference, not a new output.
+or startup timings. It is **hardware validated: loading icon works as intended**,
+owner confirmation on 2026-11-02 for `0aa257e003090fcf0f08b110b36c55775a814908`.
+The evidence below distinguishes this animation report from the earlier reference.
 
 ## Hardware evidence and limits
 
@@ -24,6 +25,7 @@ These are owner-reported physical tests, distinct from cloud/host checks.
 | Rendering-callback handoff | PNG covers loading; original developer-logo transitions/timing preserved |
 | Android Exit/audio cleanup | Normal app closure and stopped audio, no black-screen hang or manual force-close, 2026-10-26 |
 | Splash-scoped window-style guard | **Hardware validated: status-bar flash eliminated**, reference commit above; confirmed 2026-10-27 |
+| Purple-neon loading icon | **Hardware validated: loading icon works as intended**, owner confirmation 2026-11-02; animation reference `0aa257e003090fcf0f08b110b36c55775a814908`; no separate frame-by-frame timing or pause/resume report |
 | Local Mac delivery/update | Local original/PNG selection, verified build and same-key USB update reported successful |
 
 This does not establish every save/resume case, exact measured fade durations,

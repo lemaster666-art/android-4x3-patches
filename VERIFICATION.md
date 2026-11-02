@@ -70,9 +70,22 @@ is included in this record or the repository.
 
 #### Marvel Cosmic Invasion startup and Exit follow-up
 
+**Loading-icon hardware result — 2026-11-02:** the owner confirms that the
+purple-neon loading icon was successful in its intended operation on the Retroid
+Pocket Classic / Android 14. Record this as **hardware validated: loading icon
+works as intended**, reference
+[`0aa257e003090fcf0f08b110b36c55775a814908`](https://github.com/lemaster666-art/android-4x3-patches/commit/0aa257e003090fcf0f08b110b36c55775a814908).
+This supersedes the earlier pending animation status below. It is owner-reported
+device evidence, not an exact frame/pixel measurement or separate confirmation
+of every pause/resume/failure scenario. The successful technique is preserved in
+the `STARTUP&EXIT ISSUE` skill. This recording changes no working patch, timing,
+signing identity or game file; the status-bar fix remains **hardware validated:
+status-bar flash eliminated**.
+
 **Optional loading-animation candidate — 2026-10-27:** the existing splash Canvas
 path now supports the owner's private purple-neon X-Men sprite-sheet kit.
-The animation is **awaiting handheld validation**. The 40 frames use monotonic
+At that time the animation was awaiting handheld validation; the owner has now
+confirmed success above. The 40 frames use monotonic
 50 ms steps, mapped through the original 4:3 content bounds. The icon and halo
 are omitted from the first draw after the existing fade-start transition; they
 do not change any startup timing, guard lifetime or logo handoff. Missing assets
@@ -90,7 +103,7 @@ key and local original/PNG/kit inputs. Host checks are not a new hardware result
 The final lower-placement candidate's full suite passed **374 tests**, including
 required native checks, with no skips (43.72 seconds).
 
-**Latest hardware result — 2026-10-27:** the owner confirms that
+**Status-bar hardware result — 2026-10-27:** the owner confirms that
 [`6cbe39a7f5ad14911f1d2dc3f4a82ee35cb7c82c`](https://github.com/lemaster666-art/android-4x3-patches/commit/6cbe39a7f5ad14911f1d2dc3f4a82ee35cb7c82c)
 eliminates the brief Android status-bar flash during the custom PNG on Retroid
 Pocket Classic / Android 14. Record this as **hardware validated: status-bar

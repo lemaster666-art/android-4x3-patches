@@ -61,6 +61,47 @@ Classic / Android 14, owner confirmation on 2026-10-27.
   windowed command, assume a specific command number or apply Marvel labels/offsets
   to another handler. Scope any guard to its actual custom splash lifecycle.
 
+## Validated technique: animate inside the existing splash drawing path
+
+Marvel animation reference:
+[`0aa257e003090fcf0f08b110b36c55775a814908`](https://github.com/lemaster666-art/android-4x3-patches/commit/0aa257e003090fcf0f08b110b36c55775a814908).
+Status: **hardware validated: loading icon works as intended**, owner confirmation
+on 2026-11-02, Retroid Pocket Classic / Android 14. The owner reported success in
+its intended operation; this is not a frame-by-frame timing measurement or a
+separate confirmation of every pause/resume and failure case. Preserve this
+working implementation alongside the validated status-bar and Exit repairs.
+
+- Extend the existing custom splash Canvas path rather than adding a window,
+  Activity, fullscreen controller or native rendering hook. Decode the approved
+  transparent sprite sheet once as ARGB_8888 with density scaling disabled.
+  Reuse source/destination rectangles and a separate Paint with bitmap filtering
+  explicitly disabled. Do not decode/crop bitmaps per draw, premultiply twice or
+  add another pulse/glow already baked into the asset.
+- In Marvel, 40 row-major 160px cells (8 columns by 5 rows) use monotonic uptime
+  in 50ms steps, wrapping every two seconds. Continue lightweight redraws during
+  steady loading after fade-in, skipping missed frames. Map reference pixels
+  through the centered 4:3 destination rectangle, including its offset. The
+  owner's final frame position is (1104,800) on a 1280x960 reference; do not
+  confuse it with the kit's earlier (1104,784) or with Android dp/window bounds.
+- Draw only for the current attached splash, with an available sheet, no startup
+  failure and `fading == false`. The existing UI-thread readiness handoff sets
+  `fading=true`; the first subsequent redraw contains neither icon nor halo.
+  Do not fade the icon with the artwork, finish its loop or impose minimum
+  visibility. Keep fade-in, readiness, fade-out, black hold, recovery bounds and
+  original developer-logo handoff unchanged.
+- Hiding the icon must not clear the splash reference, finish the splash,
+  release the handoff latch or disable the fullscreen guard. The guard continues
+  through fade and black hold. Existing cleanup paths recycle the sheet; missing,
+  invalid or unavailable animation assets disable only the icon. Late callbacks
+  must not restore it after fading, failure or detachment.
+- Keep kit/artwork private. Reuse the local Mac picker for original APK, clean
+  splash PNG and kit ZIP, preserving the existing signing key. Read only the
+  bounded checksum-pinned sheet; never execute kit scripts or package previews.
+  Retain the authored animation tests, fullscreen/handoff tests and exact APK
+  member checks. See [the implementation and validation record](../../../experiments/marvel-startup-exit/LOADING_ANIMATION.md).
+- Other games need their own verified splash lifecycle and fade-start call path;
+  this validation does not establish universal engine/device compatibility.
+
 ## Artwork, comparison and delivery
 
 - Let the user select the original PNG locally on Mac. Verify format/bounds,
